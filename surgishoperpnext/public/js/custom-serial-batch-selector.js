@@ -110,6 +110,7 @@ if (erpnext.SerialBatchPackageSelector) {
         if (!scannedValue) return;
 
         // Parse GS1
+        console.log("🔍 DIAGNOSTIC - About to parse GS1, stack trace:", new Error().stack);
         const parsed = window.surgishop.GS1Parser.parse(scannedValue);
         if (!parsed || !parsed.gtin || !parsed.lot || !parsed.expiry) {
           frappe.show_alert({

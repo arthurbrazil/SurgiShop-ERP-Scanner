@@ -54,6 +54,7 @@ surgishop.GS1Parser = class GS1Parser {
     console.log(
       `🏥 GS1 Parse Start: Input="${gs1_string}", Length=${gs1_string.length}`
     );
+    console.log("🔍 DIAGNOSTIC - GS1 Parse called from:", new Error().stack);
 
     // Validate input
     if (!gs1_string || typeof gs1_string !== "string") {

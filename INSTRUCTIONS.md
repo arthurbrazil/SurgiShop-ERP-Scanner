@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.3.4
+- **Current Version**: 0.3.5
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -287,6 +287,22 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.3.5 (Enhanced Diagnostics - Stack Trace Edition)
+**Added Stack Traces to GS1 Parse and Pre-Parse**
+
+#### 🔍 Additional Diagnostics
+- **GS1 Parse stack trace**: Every call to `GS1Parser.parse()` now logs the full call stack
+- **Pre-parse stack trace**: Logs stack trace right before parsing in custom-serial-batch-selector
+- **Purpose**: Track exactly where the GS1 parsing is being called from
+
+#### 📋 How to Test
+1. **Hard refresh the page**: Press `Ctrl + Shift + R` (Windows) or `Cmd + Shift + R` (Mac)
+2. **Verify new version loaded**: Check console for line numbers matching version 0.3.5
+3. **Open dialog**: Click "Add Serial/Batch No" button
+4. **Check console**: Look for all 🔍 DIAGNOSTIC messages with stack traces
+
+---
 
 ### Version 0.3.4 (Diagnostic Release - Root Cause Analysis)
 **Added Comprehensive Diagnostic Logging**
