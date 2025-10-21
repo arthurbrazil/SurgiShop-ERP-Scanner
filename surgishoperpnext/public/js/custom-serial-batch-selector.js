@@ -32,21 +32,32 @@ if (erpnext.SerialBatchPackageSelector) {
 
     // Fix grid metadata to prevent errors when deleting rows
     const entriesGrid = this.dialog.fields_dict.entries.grid;
-    if (entriesGrid && !entriesGrid.meta) {
-      entriesGrid.meta = {
-        editable_grid: 1,
-        fields: entriesGrid.df.fields || []
-      };
-      console.log("🏥 Fixed grid metadata for row deletion");
+    if (entriesGrid) {
+      // Initialize meta object if it doesn't exist
+      if (!entriesGrid.meta) {
+        entriesGrid.meta = {};
+      }
+      // Set editable_grid property
+      entriesGrid.meta.editable_grid = 1;
+      entriesGrid.meta.fields = entriesGrid.df.fields || [];
+      console.log("🏥 Fixed grid metadata for row deletion", entriesGrid.meta);
     }
 
     // Add custom onchange to scan_batch_no
     const scanField = this.dialog.fields_dict.scan_batch_no;
     if (scanField) {
-      // Clear the field first to prevent auto-trigger on dialog open
-      scanField.set_value("");
+      // Use a flag to ignore the first automatic trigger
+      let isFirstLoad = true;
       
       scanField.df.onchange = () => {
+        // Ignore the first onchange trigger (happens when dialog loads with existing value)
+        if (isFirstLoad) {
+          isFirstLoad = false;
+          scanField.set_value("");
+          console.log("🏥 Ignored first onchange trigger and cleared scan field");
+          return;
+        }
+        
         const scannedValue = scanField.get_value();
         if (!scannedValue) return;
 

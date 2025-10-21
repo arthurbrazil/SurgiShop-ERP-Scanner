@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.3.2
+- **Current Version**: 0.3.3
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -287,6 +287,28 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.3.3 (Critical Hotfix - Auto-Parse & Row Deletion)
+**Improved Fix for Dialog Issues**
+
+#### 🐛 Critical Fixes
+- **Fixed: Auto-parse still happening on dialog open** - Previous fix in 0.3.1 didn't work because the field was populated AFTER the onchange handler was attached
+- **Fixed: Grid row deletion still failing** - Improved grid.meta initialization to always set properties, not just when meta doesn't exist
+- **Root Cause**: 
+  - The `scan_batch_no` field gets its value set after the dialog opens, triggering the onchange handler
+  - The grid.meta conditional check prevented proper initialization
+
+#### 🔧 Technical Changes
+- **Auto-parse prevention**: Added `isFirstLoad` flag to ignore the first onchange trigger and clear the field at that point
+- **Grid metadata**: Removed conditional check - always initialize `meta` object and set `editable_grid: 1`
+- **Better logging**: Added console log to show when first trigger is ignored
+
+#### ✅ Result
+- Dialog opens cleanly without automatic parsing (for real this time!)
+- Row deletion works correctly without JavaScript errors
+- Clean scan field ready for actual barcode input
+
+---
 
 ### Version 0.3.2 (Critical Fix - Grid Row Deletion)
 **Fixed Grid Row Deletion Error in Dialog**
