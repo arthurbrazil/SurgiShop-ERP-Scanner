@@ -8,6 +8,16 @@ if (erpnext.SerialBatchPackageSelector) {
   const originalConstructor =
     erpnext.SerialBatchPackageSelector.prototype.constructor;
   erpnext.SerialBatchPackageSelector.prototype.constructor = function (opts) {
+    console.log("🔍 DIAGNOSTIC - SerialBatchPackageSelector constructor called with opts:", {
+      hasOpts: !!opts,
+      hasItem: opts && !!opts.item,
+      item: opts && opts.item,
+      callback: opts && opts.callback,
+      frm: opts && opts.frm,
+      bundleId: opts && opts.bundle_id,
+      fullOpts: opts
+    });
+    
     if (opts && opts.item) {
       this.qty = opts.item.qty;
     } else {
@@ -20,7 +30,9 @@ if (erpnext.SerialBatchPackageSelector) {
   // Patch make to add custom scan handler
   const originalMake = erpnext.SerialBatchPackageSelector.prototype.make;
   erpnext.SerialBatchPackageSelector.prototype.make = function () {
+    console.log("🔍 DIAGNOSTIC - BEFORE originalMake called");
     originalMake.call(this);
+    console.log("🔍 DIAGNOSTIC - AFTER originalMake called");
 
     console.log("🏥 Dialog box opened!");
 
@@ -46,10 +58,46 @@ if (erpnext.SerialBatchPackageSelector) {
     // Add custom onchange to scan_batch_no
     const scanField = this.dialog.fields_dict.scan_batch_no;
     if (scanField) {
+      // DIAGNOSTIC LOGGING - Check initial state
+      const initialValue = scanField.get_value();
+      const fieldDef = scanField.df;
+      console.log("🔍 DIAGNOSTIC - scan_batch_no field state at dialog open:", {
+        initialValue: initialValue,
+        hasValue: !!initialValue,
+        fieldName: fieldDef.fieldname,
+        fieldType: fieldDef.fieldtype,
+        defaultValue: fieldDef.default,
+        hasOnchangeAlready: !!fieldDef.onchange,
+        fieldObject: scanField
+      });
+      
       // Use a flag to ignore the first automatic trigger
       let isFirstLoad = true;
       
+      // Store original onchange if it exists
+      const originalOnchange = fieldDef.onchange;
+      if (originalOnchange) {
+        console.log("🔍 DIAGNOSTIC - scan_batch_no already has an onchange handler!");
+      }
+      
+      // Intercept set_value to see when and how it's being called
+      const originalSetValue = scanField.set_value.bind(scanField);
+      scanField.set_value = function(value) {
+        console.log("🔍 DIAGNOSTIC - set_value called on scan_batch_no:", {
+          newValue: value,
+          stackTrace: new Error().stack
+        });
+        return originalSetValue(value);
+      };
+      
       scanField.df.onchange = () => {
+        const currentValue = scanField.get_value();
+        console.log("🔍 DIAGNOSTIC - onchange triggered:", {
+          isFirstLoad: isFirstLoad,
+          currentValue: currentValue,
+          valueLength: currentValue ? currentValue.length : 0
+        });
+        
         // Ignore the first onchange trigger (happens when dialog loads with existing value)
         if (isFirstLoad) {
           isFirstLoad = false;

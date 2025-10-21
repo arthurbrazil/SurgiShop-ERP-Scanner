@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.3.3
+- **Current Version**: 0.3.4
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -287,6 +287,30 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.3.4 (Diagnostic Release - Root Cause Analysis)
+**Added Comprehensive Diagnostic Logging**
+
+#### 🔍 Diagnostic Features
+- **Constructor logging**: Logs all options passed to SerialBatchPackageSelector constructor
+- **Dialog lifecycle logging**: Logs BEFORE and AFTER originalMake() execution
+- **Field state logging**: Logs initial state of scan_batch_no field when dialog opens
+- **set_value interceptor**: Intercepts and logs all calls to scanField.set_value() with stack traces
+- **onchange logging**: Logs every onchange trigger with current value and state
+
+#### 🎯 Purpose
+- Understand exactly when and why scan_batch_no field gets populated automatically
+- Trace the call stack to identify the source of the automatic value
+- Determine if it's ERPNext default behavior or something else
+
+#### 📋 What to Look For
+When you open the dialog, check console for:
+1. `🔍 DIAGNOSTIC - SerialBatchPackageSelector constructor called with opts` - Shows what data is passed in
+2. `🔍 DIAGNOSTIC - scan_batch_no field state at dialog open` - Shows initial field state
+3. `🔍 DIAGNOSTIC - set_value called on scan_batch_no` - Shows when field value is set (with stack trace)
+4. `🔍 DIAGNOSTIC - onchange triggered` - Shows when onchange fires
+
+---
 
 ### Version 0.3.3 (Critical Hotfix - Auto-Parse & Row Deletion)
 **Improved Fix for Dialog Issues**
