@@ -33,6 +33,9 @@ if (erpnext.SerialBatchPackageSelector) {
     // Add custom onchange to scan_batch_no
     const scanField = this.dialog.fields_dict.scan_batch_no;
     if (scanField) {
+      // Clear the field first to prevent auto-trigger on dialog open
+      scanField.set_value("");
+      
       scanField.df.onchange = () => {
         const scannedValue = scanField.get_value();
         if (!scannedValue) return;

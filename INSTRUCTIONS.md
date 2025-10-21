@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.2.17
+- **Current Version**: 0.3.1
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -287,6 +287,26 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.3.1 (Critical Fix - Auto-Parse Prevention)
+**Fixed Serial/Batch Dialog Auto-Parsing Issue**
+
+#### 🐛 Critical Fix
+- **Fixed: Dialog auto-parsing on open** - The serial/batch bundle picker was automatically parsing GS1 barcodes when the dialog opened, even without user input
+- **Root Cause**: The `scan_batch_no` field retained values from previous scans, triggering the `onchange` handler immediately when attached
+- **Solution**: Clear the field value before attaching the `onchange` handler to prevent auto-trigger
+
+#### 🔧 Technical Changes
+- Added `scanField.set_value("")` before `scanField.df.onchange` assignment in `custom-serial-batch-selector.js`
+- Ensures clean state when dialog opens
+- Prevents unwanted parsing and API calls
+
+#### ✅ Result
+- Dialog opens cleanly without automatic parsing
+- GS1 parsing only triggers when user actually scans a barcode
+- Improved user experience and reduced unnecessary API calls
+
+---
 
 ### Version 0.1.19 (Serial/Batch Dialog Enhancement)
 **Enhanced Serial/Batch Dialog with Item Context Display**

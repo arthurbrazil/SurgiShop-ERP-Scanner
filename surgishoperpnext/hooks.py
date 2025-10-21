@@ -29,8 +29,8 @@ app_license = "mit"
 # Load gs1-utils.js FIRST (custom-barcode-scanner.js depends on it)
 app_include_js = [
 	"/assets/surgishoperpnext/js/gs1-utils.js?v=0.3.1",
-	"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.0",
-	"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.0"
+	"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.1",
+	"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.1"
 ]
 
 # include js, css files in header of web template
@@ -55,38 +55,38 @@ doctype_js = {
 	"Stock Entry": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
 		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.3.1",
-		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.0",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.0"
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.1",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.1"
 	],
 	"Purchase Receipt": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
 		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.3.1",
-		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.0",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.0"
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.1",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.1"
 	],
 	"Purchase Invoice": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
 		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.3.1",
-		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.0",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.0"
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.1",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.1"
 	],
 	"Sales Invoice": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
 		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.3.1",
-		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.0",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.0"
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.1",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.1"
 	],
 	"Delivery Note": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
 		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.3.1",
-		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.0",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.0"
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.1",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.1"
 	],
 	"Stock Reconciliation": [
 		"/assets/surgishoperpnext/js/gs1-parser.min.js",
 		"/assets/surgishoperpnext/js/gs1-utils.js?v=0.3.1",
-		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.0",
-		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.0"
+		"/assets/surgishoperpnext/js/custom-barcode-scanner.js?v=0.3.1",
+		"/assets/surgishoperpnext/js/custom-serial-batch-selector.js?v=0.3.1"
 	],
 }
 
