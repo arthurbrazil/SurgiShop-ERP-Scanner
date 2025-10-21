@@ -30,6 +30,16 @@ if (erpnext.SerialBatchPackageSelector) {
       console.log("🏥 Updated title to:", newTitle);
     }
 
+    // Fix grid metadata to prevent errors when deleting rows
+    const entriesGrid = this.dialog.fields_dict.entries.grid;
+    if (entriesGrid && !entriesGrid.meta) {
+      entriesGrid.meta = {
+        editable_grid: 1,
+        fields: entriesGrid.df.fields || []
+      };
+      console.log("🏥 Fixed grid metadata for row deletion");
+    }
+
     // Add custom onchange to scan_batch_no
     const scanField = this.dialog.fields_dict.scan_batch_no;
     if (scanField) {

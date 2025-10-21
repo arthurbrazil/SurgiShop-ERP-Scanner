@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.3.1
+- **Current Version**: 0.3.2
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -287,6 +287,26 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.3.2 (Critical Fix - Grid Row Deletion)
+**Fixed Grid Row Deletion Error in Dialog**
+
+#### 🐛 Critical Fix
+- **Fixed: "can't access property 'editable_grid', this.grid.meta is undefined"** - Error occurred when trying to delete rows from the serial/batch bundle picker dialog
+- **Root Cause**: Dialog grid doesn't have the full metadata structure (`this.grid.meta`) that regular form grids have
+- **Solution**: Initialize grid metadata with `editable_grid` property when dialog is created
+
+#### 🔧 Technical Changes
+- Added grid metadata initialization in `make()` method of `custom-serial-batch-selector.js`
+- Grid now has proper `meta` object with `editable_grid: 1` and `fields` array
+- Prevents `TypeError` when grid row attempts to access `this.grid.meta.editable_grid`
+
+#### ✅ Result
+- Row deletion now works correctly in serial/batch bundle picker dialog
+- No more JavaScript errors when removing rows
+- Improved grid compatibility with ERPNext's grid system
+
+---
 
 ### Version 0.3.1 (Critical Fix - Auto-Parse Prevention)
 **Fixed Serial/Batch Dialog Auto-Parsing Issue**
