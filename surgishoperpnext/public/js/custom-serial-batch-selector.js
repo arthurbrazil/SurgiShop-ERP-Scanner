@@ -15,7 +15,14 @@ if (erpnext.SerialBatchPackageSelector) {
       callback: opts && opts.callback,
       frm: opts && opts.frm,
       bundleId: opts && opts.bundle_id,
+      serialAndBatchBundle: opts && opts.item && opts.item.serial_and_batch_bundle,
       fullOpts: opts
+    });
+    
+    // Check localStorage and sessionStorage for cached values
+    console.log("🔍 DIAGNOSTIC - Checking browser storage:", {
+      localStorage: Object.keys(localStorage).filter(k => k.includes('batch') || k.includes('scan')),
+      sessionStorage: Object.keys(sessionStorage).filter(k => k.includes('batch') || k.includes('scan'))
     });
     
     if (opts && opts.item) {
@@ -31,7 +38,27 @@ if (erpnext.SerialBatchPackageSelector) {
   const originalMake = erpnext.SerialBatchPackageSelector.prototype.make;
   erpnext.SerialBatchPackageSelector.prototype.make = function () {
     console.log("🔍 DIAGNOSTIC - BEFORE originalMake called");
+    console.log("🔍 DIAGNOSTIC - This object state:", {
+      item: this.item,
+      bundle_id: this.bundle_id,
+      frm: this.frm ? this.frm.doctype : null,
+      itemCode: this.item ? this.item.item_code : null
+    });
+    
+    // Intercept frappe.db.get_value to see what ERPNext is fetching
+    const originalGetValue = frappe.db.get_value;
+    frappe.db.get_value = function(...args) {
+      console.log("🔍 DIAGNOSTIC - frappe.db.get_value called:", args);
+      return originalGetValue.apply(this, args);
+    };
+    
     originalMake.call(this);
+    
+    // Restore original get_value after a short delay
+    setTimeout(() => {
+      frappe.db.get_value = originalGetValue;
+    }, 2000);
+    
     console.log("🔍 DIAGNOSTIC - AFTER originalMake called");
 
     console.log("🏥 Dialog box opened!");

@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.3.5
+- **Current Version**: 0.3.6
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -287,6 +287,28 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.3.6 (Deep Dive - ERPNext Logic Investigation)
+**Intercept ERPNext's Data Fetching Logic**
+
+#### 🔍 Investigation Features
+- **Browser storage check**: Logs localStorage and sessionStorage keys related to batch/scan
+- **Serial and Batch Bundle tracking**: Logs if item has existing bundle ID
+- **frappe.db.get_value interceptor**: Captures ALL database queries made by ERPNext during dialog initialization
+- **This object state logging**: Shows the complete state of the SerialBatchPackageSelector instance
+
+#### 🎯 Purpose
+- Identify exactly what ERPNext is fetching from the database
+- Determine if the GS1 barcode is stored in browser storage
+- Understand the complete data flow from ERPNext's make() method
+
+#### 📋 What to Look For
+After hard refresh, when you open the dialog check for:
+1. `🔍 DIAGNOSTIC - Checking browser storage` - Shows cached keys in localStorage/sessionStorage
+2. `🔍 DIAGNOSTIC - This object state` - Shows bundle_id and item details
+3. `🔍 DIAGNOSTIC - frappe.db.get_value called` - Shows what ERPNext is querying from database
+
+---
 
 ### Version 0.3.5 (Enhanced Diagnostics - Stack Trace Edition)
 **Added Stack Traces to GS1 Parse and Pre-Parse**

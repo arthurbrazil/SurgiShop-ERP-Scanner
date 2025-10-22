@@ -125,7 +125,7 @@ surgishop.GS1Parser = class GS1Parser {
             // For 2-digit AIs, we need some minimum distance to avoid false positives
             const isAtMinDistance = i - pos >= 1; // At least 1 character into the field
             const prevChar = i > 0 ? gs1_string[i - 1] : "";
-            
+
             console.log(
               `🏥 Debug AI Detection: pos=${pos}, i=${i}, potentialAI2="${potentialAI2}", potentialAI3="${potentialAI3}", isAtMinDistance=${isAtMinDistance}, prevChar="${prevChar}"`
             );
