@@ -52,12 +52,36 @@ if (erpnext.SerialBatchPackageSelector) {
       return originalGetValue.apply(this, args);
     };
     
+    // Intercept frappe.call to catch serial_and_batch_bundle_auto_data
+    const originalCall = frappe.call;
+    frappe.call = function(opts) {
+      if (opts.method && opts.method.includes('auto_data')) {
+        console.log("🔍 DIAGNOSTIC - frappe.call to auto_data:", {
+          method: opts.method,
+          args: opts.args,
+          callback: !!opts.callback
+        });
+        
+        // Wrap the callback to see the response
+        const originalCallback = opts.callback;
+        opts.callback = function(r) {
+          console.log("🔍 DIAGNOSTIC - auto_data RESPONSE:", r);
+          if (originalCallback) {
+            return originalCallback.call(this, r);
+          }
+        };
+      }
+      return originalCall.apply(this, [opts]);
+    };
+    
     originalMake.call(this);
     
-    // Restore original get_value after a short delay
+    // Restore original functions after a short delay
     setTimeout(() => {
       frappe.db.get_value = originalGetValue;
-    }, 2000);
+      frappe.call = originalCall;
+      console.log("🔍 DIAGNOSTIC - Restored original frappe functions");
+    }, 3000);
     
     console.log("🔍 DIAGNOSTIC - AFTER originalMake called");
 

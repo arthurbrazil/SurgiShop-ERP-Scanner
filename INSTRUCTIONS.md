@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.3.6
+- **Current Version**: 0.3.7
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -287,6 +287,37 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.3.7 (Breakthrough - Auto Data Interceptor)
+**Intercept ERPNext's serial_and_batch_bundle_auto_data Call**
+
+#### 🎯 Breakthrough Discovery
+- User provided network tab screenshot showing ERPNext calls `serial_and_batch_bundle_auto_data`
+- This is the API endpoint that returns batch data when dialog opens
+- **This is where the GS1 barcode is coming from!**
+
+#### 🔍 New Interceptor
+- **frappe.call interceptor**: Captures calls to methods containing 'auto_data'
+- **Response wrapper**: Logs the complete response from auto_data endpoint
+- Shows both request args and response data
+
+#### 📋 Expected Console Output
+```
+🔍 DIAGNOSTIC - frappe.call to auto_data: {
+  method: "frappe.desk.doctype.serial_and_batch_bundle.serial_and_batch_bundle_auto_data",
+  args: {...},
+  callback: true
+}
+
+🔍 DIAGNOSTIC - auto_data RESPONSE: {
+  message: {
+    scan_batch_no: "01207050310030161724033010LOT789", // THE SOURCE!
+    ...
+  }
+}
+```
+
+---
 
 ### Version 0.3.6 (Deep Dive - ERPNext Logic Investigation)
 **Intercept ERPNext's Data Fetching Logic**
