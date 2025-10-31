@@ -54,13 +54,34 @@ if (erpnext.SerialBatchPackageSelector) {
     
     // Intercept frappe.call to catch serial_and_batch_bundle_auto_data
     const originalCall = frappe.call;
+    const self = this;
     frappe.call = function(opts) {
       if (opts.method && opts.method.includes('auto_data')) {
         console.log("🔍 DIAGNOSTIC - frappe.call to auto_data:", {
           method: opts.method,
           args: opts.args,
-          callback: !!opts.callback
+          callback: !!opts.callback,
+          hasBundleId: !!self.bundle_id
         });
+        
+        // If there's NO existing bundle_id, block auto-population
+        if (!self.bundle_id) {
+          console.log("🏥 BLOCKING auto_data - Starting with empty list");
+          
+          // Call the original callback with empty data
+          const originalCallback = opts.callback;
+          if (originalCallback) {
+            setTimeout(() => {
+              originalCallback.call(this, { message: [] });
+            }, 0);
+          }
+          
+          // Return a fake promise that resolves immediately
+          return Promise.resolve({ message: [] });
+        }
+        
+        // If there IS a bundle_id, allow it (editing existing bundle)
+        console.log("🏥 ALLOWING auto_data - Editing existing bundle:", self.bundle_id);
         
         // Wrap the callback to see the response
         const originalCallback = opts.callback;

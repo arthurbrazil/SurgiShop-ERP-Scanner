@@ -271,7 +271,7 @@ If manual version bumping is needed:
 
 ## Version Information
 
-- **Current Version**: 0.3.7
+- **Current Version**: 0.3.8
 - **Python Requirements**: >=3.10
 - **Frappe Compatibility**: ~15.0.0
 - **License**: MIT
@@ -287,6 +287,45 @@ If manual version bumping is needed:
 **Note**: This app is specifically designed for research purposes to allow processing of expired items. The batch expiry override is intentional for research purposes and should be used responsibly.
 
 ## Changelog
+
+### Version 0.3.8 (Smart Auto-Population Control)
+**Block Auto-Population for New Items, Allow Persistence for Existing Bundles**
+
+#### 🎯 Feature
+- **Smart auto_data blocking** - Blocks automatic batch population when creating NEW serial/batch bundles
+- **Preserve existing bundles** - Allows auto_data to load batches when editing EXISTING bundles
+- **User-requested behavior** - Start with empty list, manually scan items, but preserve saved data
+
+#### 🔧 Implementation
+- **bundle_id detection** - Checks if `this.bundle_id` exists to determine new vs existing bundle
+- **Conditional blocking** - Only blocks `auto_data` call when `!self.bundle_id` (new bundle)
+- **Callback override** - Returns empty array `{ message: [] }` for new bundles
+- **Existing bundle passthrough** - Allows normal auto_data flow when bundle_id exists
+
+#### 📋 User Experience
+- **New item workflow**:
+  1. Click "Add Serial / Batch No" on new delivery note item
+  2. Dialog opens with EMPTY list (no auto-population)
+  3. Scan items one by one using GS1 barcode scanner
+  4. Click Submit to save (creates bundle_id)
+  
+- **Existing bundle workflow**:
+  1. Click "Add Serial / Batch No" on item with saved batches
+  2. Dialog opens with PREVIOUSLY SAVED batches loaded
+  3. Can add more items or modify existing ones
+  4. Click Submit to update
+
+#### 🔍 Console Logging
+- `🏥 BLOCKING auto_data - Starting with empty list` (new bundle)
+- `🏥 ALLOWING auto_data - Editing existing bundle: SBDL-00123` (existing bundle)
+- `hasBundleId: true/false` in diagnostic logs
+
+#### ✅ Result
+- New items start with clean slate for manual scanning
+- Existing bundles preserve their data across dialog reopens
+- Best of both worlds - manual control + data persistence
+
+---
 
 ### Version 0.3.7 (Breakthrough - Auto Data Interceptor)
 **Intercept ERPNext's serial_and_batch_bundle_auto_data Call**
