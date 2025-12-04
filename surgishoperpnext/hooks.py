@@ -265,6 +265,6 @@ doc_events = {
 fixtures = [
 	{
 		"doctype": "Workspace",
-		"filters": [["module", "=", "SurgiShop ERP Scanner"]]
+		"filters": [["module", "=", "SurgiShopERPNext"]]
 	}
 ]
