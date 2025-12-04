@@ -1,9 +1,9 @@
 [project]
-name = "surgishoperpnext"
+name = "surgishop-erp-scanner"
 authors = [
     { name = "SurgiShop", email = "Arthur.Borges@SurgiShop.com"}
 ]
-description = "SurgiShopERPNext"
+description = "SurgiShop ERP Scanner - Batch expiry validation overrides for ERPNext"
 requires-python = ">=3.11"
 readme = "README.md"
 dynamic = ["version"]

@@ -1,4 +1,4 @@
-## SurgiShopERPNext
+## SurgiShop ERP Scanner
 
 Custom Frappe/ERPNext app for SurgiShop with configurable batch expiry validation overrides.
 
@@ -13,7 +13,7 @@ Custom Frappe/ERPNext app for SurgiShop with configurable batch expiry validatio
 
 ```bash
 # Install the app
-bench get-app surgishoperpnext
+bench get-app surgishop-erp-scanner
 bench install-app surgishoperpnext
 bench migrate
 

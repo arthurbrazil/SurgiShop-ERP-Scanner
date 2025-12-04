@@ -1,7 +1,7 @@
 app_name = "surgishoperpnext"
-app_title = "SurgiShopERPNext"
+app_title = "SurgiShop ERP Scanner"
 app_publisher = "SurgiShop"
-app_description = "SurgiShopERPNext"
+app_description = "SurgiShop ERP Scanner - Batch expiry validation overrides for ERPNext"
 app_email = "Arthur.Borges@SurgiShop.com"
 app_license = "mit"
 
@@ -265,6 +265,6 @@ doc_events = {
 fixtures = [
 	{
 		"doctype": "Workspace",
-		"filters": [["module", "=", "SurgiShopERPNext"]]
+		"filters": [["module", "=", "SurgiShop ERP Scanner"]]
 	}
 ]
