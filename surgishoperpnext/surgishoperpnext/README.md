@@ -48,7 +48,7 @@ This app overrides the default ERPNext StockController behavior to allow expired
 
 1. Install the app in your Frappe/ERPNext instance:
    ```bash
-   bench get-app surgishop-erp-scanner
+   bench get-app https://github.com/arthurbrazil/SurgiShop-ERP-Scanner.git
    bench install-app surgishoperpnext
    ```
 

@@ -1,5 +1,5 @@
 [project]
-name = "surgishop-erp-scanner"
+name = "surgishoperpnext"
 authors = [
     { name = "SurgiShop", email = "Arthur.Borges@SurgiShop.com"}
 ]
