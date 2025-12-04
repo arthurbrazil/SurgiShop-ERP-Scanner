@@ -1,4 +1,4 @@
-app_name = "surgishoperpnext"
+app_name = "surgishop_erp_scanner"
 app_title = "SurgiShop ERP Scanner"
 app_publisher = "SurgiShop"
 app_description = "SurgiShop ERP Scanner - Batch expiry validation overrides for ERPNext"
@@ -16,11 +16,11 @@ required_frappe_version = ">=16.0.0"
 # Each item in the list will be shown as an app in the apps page
 # add_to_apps_screen = [
 # 	{
-# 		"name": "surgishoperpnext",
-# 		"logo": "/assets/surgishoperpnext/logo.png",
-# 		"title": "SurgiShopERPNext",
-# 		"route": "/surgishoperpnext",
-# 		"has_permission": "surgishoperpnext.api.permission.has_app_permission"
+# 		"name": "surgishop_erp_scanner",
+# 		"logo": "/assets/surgishop_erp_scanner/logo.png",
+# 		"title": "SurgiShop ERP Scanner",
+# 		"route": "/surgishop_erp_scanner",
+# 		"has_permission": "surgishop_erp_scanner.api.permission.has_app_permission"
 # 	}
 # ]
 
@@ -28,15 +28,15 @@ required_frappe_version = ">=16.0.0"
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/surgishoperpnext/css/surgishoperpnext.css"
-# app_include_js = "/assets/surgishoperpnext/js/surgishoperpnext.js"
+# app_include_css = "/assets/surgishop_erp_scanner/css/surgishop_erp_scanner.css"
+# app_include_js = "/assets/surgishop_erp_scanner/js/surgishop_erp_scanner.js"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/surgishoperpnext/css/surgishoperpnext.css"
-# web_include_js = "/assets/surgishoperpnext/js/surgishoperpnext.js"
+# web_include_css = "/assets/surgishop_erp_scanner/css/surgishop_erp_scanner.css"
+# web_include_js = "/assets/surgishop_erp_scanner/js/surgishop_erp_scanner.js"
 
 # include custom scss in every website theme (without file extension ".scss")
-# website_theme_scss = "surgishoperpnext/public/scss/website"
+# website_theme_scss = "surgishop_erp_scanner/public/scss/website"
 
 # include js, css files in header of web form
 # webform_include_js = {"doctype": "public/js/doctype.js"}
@@ -54,7 +54,7 @@ required_frappe_version = ">=16.0.0"
 # Svg Icons
 # ------------------
 # include app icons in desk
-# app_include_icons = "surgishoperpnext/public/icons.svg"
+# app_include_icons = "surgishop_erp_scanner/public/icons.svg"
 
 # Home Pages
 # ----------
@@ -78,43 +78,43 @@ required_frappe_version = ">=16.0.0"
 
 # add methods and filters to jinja environment
 # jinja = {
-# 	"methods": "surgishoperpnext.utils.jinja_methods",
-# 	"filters": "surgishoperpnext.utils.jinja_filters"
+# 	"methods": "surgishop_erp_scanner.utils.jinja_methods",
+# 	"filters": "surgishop_erp_scanner.utils.jinja_filters"
 # }
 
 # Installation
 # ------------
 
-# before_install = "surgishoperpnext.install.before_install"
-after_install = "surgishoperpnext.surgishoperpnext.install.after_install"
+# before_install = "surgishop_erp_scanner.install.before_install"
+after_install = "surgishop_erp_scanner.surgishop_erp_scanner.install.after_install"
 
 # Uninstallation
 # ------------
 
-# before_uninstall = "surgishoperpnext.uninstall.before_uninstall"
-# after_uninstall = "surgishoperpnext.uninstall.after_uninstall"
+# before_uninstall = "surgishop_erp_scanner.uninstall.before_uninstall"
+# after_uninstall = "surgishop_erp_scanner.uninstall.after_uninstall"
 
 # Integration Setup
 # ------------------
 # To set up dependencies/integrations with other apps
 # Name of the app being installed is passed as an argument
 
-# before_app_install = "surgishoperpnext.utils.before_app_install"
-# after_app_install = "surgishoperpnext.utils.after_app_install"
+# before_app_install = "surgishop_erp_scanner.utils.before_app_install"
+# after_app_install = "surgishop_erp_scanner.utils.after_app_install"
 
 # Integration Cleanup
 # -------------------
 # To clean up dependencies/integrations with other apps
 # Name of the app being uninstalled is passed as an argument
 
-# before_app_uninstall = "surgishoperpnext.utils.before_app_uninstall"
-# after_app_uninstall = "surgishoperpnext.utils.after_app_uninstall"
+# before_app_uninstall = "surgishop_erp_scanner.utils.before_app_uninstall"
+# after_app_uninstall = "surgishop_erp_scanner.utils.after_app_uninstall"
 
 # Desk Notifications
 # ------------------
 # See frappe.core.notifications.get_notification_config
 
-# notification_config = "surgishoperpnext.notifications.get_notification_config"
+# notification_config = "surgishop_erp_scanner.notifications.get_notification_config"
 
 # Permissions
 # -----------
@@ -142,22 +142,22 @@ after_install = "surgishoperpnext.surgishoperpnext.install.after_install"
 
 doc_events = {
 	"Purchase Receipt": {
-		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishop_erp_scanner.surgishop_erp_scanner.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Purchase Invoice": {
-		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishop_erp_scanner.surgishop_erp_scanner.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Stock Entry": {
-		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishop_erp_scanner.surgishop_erp_scanner.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Stock Reconciliation": {
-		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishop_erp_scanner.surgishop_erp_scanner.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Sales Invoice": {
-		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishop_erp_scanner.surgishop_erp_scanner.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Delivery Note": {
-		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishop_erp_scanner.surgishop_erp_scanner.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	}
 }
 
@@ -166,39 +166,39 @@ doc_events = {
 
 # scheduler_events = {
 # 	"all": [
-# 		"surgishoperpnext.tasks.all"
+# 		"surgishop_erp_scanner.tasks.all"
 # 	],
 # 	"daily": [
-# 		"surgishoperpnext.tasks.daily"
+# 		"surgishop_erp_scanner.tasks.daily"
 # 	],
 # 	"hourly": [
-# 		"surgishoperpnext.tasks.hourly"
+# 		"surgishop_erp_scanner.tasks.hourly"
 # 	],
 # 	"weekly": [
-# 		"surgishoperpnext.tasks.weekly"
+# 		"surgishop_erp_scanner.tasks.weekly"
 # 	],
 # 	"monthly": [
-# 		"surgishoperpnext.tasks.monthly"
+# 		"surgishop_erp_scanner.tasks.monthly"
 # 	],
 # }
 
 # Testing
 # -------
 
-# before_tests = "surgishoperpnext.install.before_tests"
+# before_tests = "surgishop_erp_scanner.install.before_tests"
 
 # Overriding Methods
 # ------------------------------
 #
 # override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "surgishoperpnext.event.get_events"
+# 	"frappe.desk.doctype.event.event.get_events": "surgishop_erp_scanner.event.get_events"
 # }
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
 # override_doctype_dashboards = {
-# 	"Task": "surgishoperpnext.task.get_dashboard_data"
+# 	"Task": "surgishop_erp_scanner.task.get_dashboard_data"
 # }
 
 # exempt linked doctypes from being automatically cancelled
@@ -212,13 +212,13 @@ doc_events = {
 
 # Request Events
 # ----------------
-# before_request = ["surgishoperpnext.utils.before_request"]
-# after_request = ["surgishoperpnext.utils.after_request"]
+# before_request = ["surgishop_erp_scanner.utils.before_request"]
+# after_request = ["surgishop_erp_scanner.utils.after_request"]
 
 # Job Events
 # ----------
-# before_job = ["surgishoperpnext.utils.before_job"]
-# after_job = ["surgishoperpnext.utils.after_job"]
+# before_job = ["surgishop_erp_scanner.utils.before_job"]
+# after_job = ["surgishop_erp_scanner.utils.after_job"]
 
 # User Data Protection
 # --------------------
@@ -248,7 +248,7 @@ doc_events = {
 # --------------------------------
 
 # auth_hooks = [
-# 	"surgishoperpnext.auth.validate"
+# 	"surgishop_erp_scanner.auth.validate"
 # ]
 
 # Automatically update python controller files with type annotations for this app.
@@ -265,6 +265,6 @@ doc_events = {
 fixtures = [
 	{
 		"doctype": "Workspace",
-		"filters": [["module", "=", "SurgiShopERPNext"]]
+		"filters": [["module", "=", "SurgiShop ERP Scanner"]]
 	}
 ]

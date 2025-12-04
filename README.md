@@ -14,7 +14,7 @@ Custom Frappe/ERPNext app for SurgiShop with configurable batch expiry validatio
 ```bash
 # Install the app
 bench get-app https://github.com/arthurbrazil/SurgiShop-ERP-Scanner.git
-bench install-app surgishoperpnext
+bench install-app surgishop_erp_scanner
 bench migrate
 
 # Access settings
@@ -37,7 +37,7 @@ Access **SurgiShop > SurgiShop Settings** from the desk sidebar to configure:
 
 ### Documentation
 
-See [surgishoperpnext/surgishoperpnext/README.md](surgishoperpnext/surgishoperpnext/README.md) for detailed documentation.
+See [surgishop_erp_scanner/surgishop_erp_scanner/README.md](surgishop_erp_scanner/surgishop_erp_scanner/README.md) for detailed documentation.
 
 ### License
 
