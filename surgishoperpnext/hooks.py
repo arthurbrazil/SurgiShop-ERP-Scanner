@@ -5,6 +5,9 @@ app_description = "SurgiShopERPNext"
 app_email = "Arthur.Borges@SurgiShop.com"
 app_license = "mit"
 
+# Required Frappe version
+required_frappe_version = ">=16.0.0"
+
 # Apps
 # ------------------
 
@@ -83,7 +86,7 @@ app_license = "mit"
 # ------------
 
 # before_install = "surgishoperpnext.install.before_install"
-# after_install = "surgishoperpnext.install.after_install"
+after_install = "surgishoperpnext.surgishoperpnext.install.after_install"
 
 # Uninstallation
 # ------------
@@ -139,22 +142,22 @@ app_license = "mit"
 
 doc_events = {
 	"Purchase Receipt": {
-		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Purchase Invoice": {
-		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Stock Entry": {
-		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Stock Reconciliation": {
-		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Sales Invoice": {
-		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	},
 	"Delivery Note": {
-		"validate": "surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishoperpnext.surgishoperpnext.overrides.stock_controller.validate_serialized_batch_with_expired_override"
 	}
 }
 
@@ -255,3 +258,13 @@ doc_events = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
 
+# Fixtures
+# --------
+# Export these doctypes when running bench export-fixtures
+
+fixtures = [
+	{
+		"doctype": "Workspace",
+		"filters": [["module", "=", "SurgiShopERPNext"]]
+	}
+]

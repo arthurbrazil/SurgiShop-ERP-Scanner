@@ -4,12 +4,28 @@ Custom Frappe app for SurgiShop with ERPNext modifications.
 
 ## Features
 
+### SurgiShop Settings
+
+This app includes a settings page accessible from the desk sidebar under **SurgiShop > SurgiShop Settings**.
+
+#### Settings Options:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Allow Expired Batches on Inbound** | ✅ Enabled | Master toggle for allowing expired batches on inbound transactions |
+| **Skip All Batch Expiry Validation** | ❌ Disabled | WARNING: Completely disables expiry validation for all transactions |
+| **Purchase Receipt** | ✅ Enabled | Allow expired batches on Purchase Receipt documents |
+| **Purchase Invoice** | ✅ Enabled | Allow expired batches on Purchase Invoice documents |
+| **Stock Entry (Material Receipt)** | ✅ Enabled | Allow expired batches on Stock Entry with Material Receipt purpose |
+| **Stock Reconciliation** | ✅ Enabled | Allow expired batches on Stock Reconciliation documents |
+| **Sales Returns** | ✅ Enabled | Allow expired batches on Sales Returns |
+
 ### Stock Controller Override
 
-This app overrides the default ERPNext StockController behavior to allow expired products to be received into the system for inbound transactions.
+This app overrides the default ERPNext StockController behavior to allow expired products to be received into the system for inbound transactions, based on the settings configured above.
 
 #### What it does:
-- **Allows expired products** to be received through inbound transactions (Purchase Receipt, Purchase Invoice, Stock Entry with Material Receipt, etc.)
+- **Allows expired products** to be received through inbound transactions (Purchase Receipt, Purchase Invoice, Stock Entry with Material Receipt, etc.) when enabled in settings
 - **Maintains expiry validation** for outbound transactions to prevent selling expired products
 - **Preserves all other stock validation** functionality
 
@@ -36,7 +52,12 @@ This app overrides the default ERPNext StockController behavior to allow expired
    bench install-app surgishoperpnext
    ```
 
-2. The override will be automatically applied when the app is installed.
+2. Run migrations to create the settings DocType:
+   ```bash
+   bench migrate
+   ```
+
+3. Access settings from **SurgiShop > SurgiShop Settings** in the desk sidebar.
 
 ## Testing
 
@@ -48,9 +69,31 @@ bench run-tests --app surgishoperpnext
 
 ## Technical Details
 
-The override is implemented in `surgishoperpnext/overrides/stock_controller.py` and registered in `hooks.py` using the `doc_events` hook for better update-proofing.
+### File Structure
 
-The key function `is_inbound_transaction()` determines whether a transaction is bringing stock into the system, and if so, skips the batch expiry validation that would normally prevent receiving expired products.
+```
+surgishoperpnext/
+├── hooks.py                           # App hooks and doc_events
+├── surgishoperpnext/
+│   ├── doctype/
+│   │   └── surgishop_settings/        # Settings DocType
+│   │       ├── surgishop_settings.json
+│   │       └── surgishop_settings.py
+│   ├── overrides/
+│   │   └── stock_controller.py        # Batch expiry validation override
+│   ├── workspace/
+│   │   └── surgishop/                 # Desk sidebar workspace
+│   │       └── surgishop.json
+│   └── install.py                     # Post-install setup
+```
+
+### How It Works
+
+1. The override is registered in `hooks.py` using the `doc_events` hook
+2. When stock documents are validated, `validate_serialized_batch_with_expired_override()` is called
+3. The function checks `SurgiShop Settings` to determine if expired batches should be allowed
+4. For inbound transactions with settings enabled, batch expiry validation is skipped
+5. For outbound transactions, standard ERPNext batch expiry validation is enforced
 
 This approach uses document event hooks instead of class inheritance, making it more resilient to ERPNext updates.
 

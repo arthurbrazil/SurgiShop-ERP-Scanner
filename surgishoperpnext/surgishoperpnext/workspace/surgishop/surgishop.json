@@ -1,0 +1,48 @@
+{
+	"charts": [],
+	"content": "[{\"id\":\"kVXPfU9vFZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>SurgiShop</b></span>\",\"col\":12}},{\"id\":\"Hy3vPQN2hR\",\"type\":\"paragraph\",\"data\":{\"text\":\"Configure SurgiShop ERPNext customizations.\",\"col\":12}},{\"id\":\"rABC123xyz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"SurgiShop Settings\",\"col\":4}}]",
+	"creation": "2024-01-01 00:00:00.000000",
+	"custom_blocks": [],
+	"docstatus": 0,
+	"doctype": "Workspace",
+	"for_user": "",
+	"hide_custom": 0,
+	"icon": "setting",
+	"idx": 0,
+	"is_hidden": 0,
+	"label": "SurgiShop",
+	"links": [
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "SurgiShop Settings",
+			"link_count": 0,
+			"link_to": "SurgiShop Settings",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		}
+	],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "SurgiShopERPNext",
+	"name": "SurgiShop",
+	"number_cards": [],
+	"owner": "Administrator",
+	"parent_page": "",
+	"public": 1,
+	"restrict_to_domain": "",
+	"roles": [],
+	"sequence_id": 25.0,
+	"shortcuts": [
+		{
+			"color": "Blue",
+			"doc_view": "",
+			"label": "SurgiShop Settings",
+			"link_to": "SurgiShop Settings",
+			"stats_filter": "",
+			"type": "DocType"
+		}
+	],
+	"title": "SurgiShop"
+}

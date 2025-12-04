@@ -1,0 +1,123 @@
+{
+	"actions": [],
+	"allow_rename": 0,
+	"creation": "2024-01-01 00:00:00.000000",
+	"default_view": "List",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"batch_expiry_section",
+		"allow_expired_batches_on_inbound",
+		"column_break_1",
+		"skip_batch_expiry_validation",
+		"inbound_transactions_section",
+		"allow_expired_on_purchase_receipt",
+		"allow_expired_on_purchase_invoice",
+		"allow_expired_on_stock_entry_receipt",
+		"column_break_2",
+		"allow_expired_on_stock_reconciliation",
+		"allow_expired_on_sales_return"
+	],
+	"fields": [
+		{
+			"fieldname": "batch_expiry_section",
+			"fieldtype": "Section Break",
+			"label": "Batch Expiry Settings"
+		},
+		{
+			"default": "1",
+			"description": "When enabled, expired batches can be received into the system through inbound transactions (Purchase Receipt, Stock Entry - Material Receipt, etc.)",
+			"fieldname": "allow_expired_batches_on_inbound",
+			"fieldtype": "Check",
+			"label": "Allow Expired Batches on Inbound Transactions"
+		},
+		{
+			"fieldname": "column_break_1",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "0",
+			"description": "WARNING: When enabled, batch expiry validation is completely skipped for ALL transactions. Use with caution!",
+			"fieldname": "skip_batch_expiry_validation",
+			"fieldtype": "Check",
+			"label": "Skip All Batch Expiry Validation"
+		},
+		{
+			"collapsible": 1,
+			"collapsible_depends_on": "allow_expired_batches_on_inbound",
+			"depends_on": "allow_expired_batches_on_inbound",
+			"fieldname": "inbound_transactions_section",
+			"fieldtype": "Section Break",
+			"label": "Inbound Transaction Settings"
+		},
+		{
+			"default": "1",
+			"description": "Allow expired batches on Purchase Receipt documents",
+			"fieldname": "allow_expired_on_purchase_receipt",
+			"fieldtype": "Check",
+			"label": "Purchase Receipt"
+		},
+		{
+			"default": "1",
+			"description": "Allow expired batches on Purchase Invoice documents",
+			"fieldname": "allow_expired_on_purchase_invoice",
+			"fieldtype": "Check",
+			"label": "Purchase Invoice"
+		},
+		{
+			"default": "1",
+			"description": "Allow expired batches on Stock Entry with Material Receipt purpose",
+			"fieldname": "allow_expired_on_stock_entry_receipt",
+			"fieldtype": "Check",
+			"label": "Stock Entry (Material Receipt)"
+		},
+		{
+			"fieldname": "column_break_2",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"description": "Allow expired batches on Stock Reconciliation documents",
+			"fieldname": "allow_expired_on_stock_reconciliation",
+			"fieldtype": "Check",
+			"label": "Stock Reconciliation"
+		},
+		{
+			"default": "1",
+			"description": "Allow expired batches on Sales Returns (Sales Invoice / Delivery Note with is_return=True)",
+			"fieldname": "allow_expired_on_sales_return",
+			"fieldtype": "Check",
+			"label": "Sales Returns"
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"issingle": 1,
+	"links": [],
+	"modified": "2024-01-01 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "SurgiShopERPNext",
+	"name": "SurgiShop Settings",
+	"naming_rule": "Expression (old style)",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"print": 1,
+			"read": 1,
+			"role": "System Manager",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"read": 1,
+			"role": "Stock Manager",
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}
