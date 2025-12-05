@@ -1,6 +1,6 @@
 {
 	"charts": [],
-	"content": "[{\"id\":\"kVXPfU9vFZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>SurgiShop</b></span>\",\"col\":12}},{\"id\":\"Hy3vPQN2hR\",\"type\":\"paragraph\",\"data\":{\"text\":\"Configure SurgiShop ERPNext customizations.\",\"col\":12}},{\"id\":\"rABC123xyz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"SurgiShop Settings\",\"col\":4}}]",
+	"content": "[{\"id\":\"kVXPfU9vFZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>SS - Scanner</b></span>\",\"col\":12}},{\"id\":\"Hy3vPQN2hR\",\"type\":\"paragraph\",\"data\":{\"text\":\"Configure SurgiShop ERPNext customizations.\",\"col\":12}},{\"id\":\"rABC123xyz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"SurgiShop Settings\",\"col\":4}}]",
 	"creation": "2024-01-01 00:00:00.000000",
 	"custom_blocks": [],
 	"docstatus": 0,
@@ -10,7 +10,7 @@
 	"icon": "setting",
 	"idx": 0,
 	"is_hidden": 0,
-	"label": "SurgiShop",
+	"label": "SS - Scanner",
 	"links": [
 		{
 			"hidden": 0,
@@ -26,7 +26,7 @@
 	"modified": "2024-01-01 00:00:00.000000",
 	"modified_by": "Administrator",
 	"module": "SurgiShop ERP Scanner",
-	"name": "SurgiShop",
+	"name": "SS - Scanner",
 	"number_cards": [],
 	"owner": "Administrator",
 	"parent_page": "",
@@ -44,5 +44,5 @@
 			"type": "DocType"
 		}
 	],
-	"title": "SurgiShop"
+	"title": "SS - Scanner"
 }
