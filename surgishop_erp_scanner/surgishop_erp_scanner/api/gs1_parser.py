@@ -6,6 +6,34 @@ from frappe import _
 from datetime import datetime
 
 
+def get_scanner_settings():
+	"""Get SurgiShop scanner settings with defaults."""
+	try:
+		settings = frappe.get_cached_doc("SurgiShop Settings")
+		return settings
+	except Exception:
+		# Return defaults if settings don't exist
+		return frappe._dict({
+			"batch_naming_format": "{item}-{lot}",
+			"auto_create_batches": 1,
+			"update_missing_expiry": 1,
+			"warn_on_expiry_mismatch": 1,
+		})
+
+
+def format_batch_id(item_code, lot, naming_format=None):
+	"""Format batch ID based on naming format setting."""
+	if not naming_format:
+		settings = get_scanner_settings()
+		naming_format = settings.get("batch_naming_format") or "{item}-{lot}"
+
+	if naming_format == "{lot}":
+		return lot
+	else:
+		# Default: {item}-{lot}
+		return f"{item_code}-{lot}"
+
+
 @frappe.whitelist()
 def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 	"""
@@ -90,10 +118,11 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 			)
 			frappe.throw(_("Item {0} does not use batch numbers").format(item_code))
 
-		# 3) Form the batch_id as itemcode-lot to avoid conflicts
-		batch_id = f"{item_code}-{lot}"
+		# 3) Get settings and form the batch_id based on naming format
+		settings = get_scanner_settings()
+		batch_id = format_batch_id(item_code, lot)
 		frappe.logger().info(
-			f"🏥 SurgiShop ERP Scanner: Looking for batch_id: {batch_id}"
+			f"🏥 SurgiShop ERP Scanner: Looking for batch_id: {batch_id} (format: {settings.get('batch_naming_format', '{item}-{lot}')})"
 		)
 
 		# 4) Check if the batch already exists by "batch_id"
@@ -101,6 +130,12 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 		batch_doc = None
 
 		if not batch_name:
+			# Check if auto-create is enabled
+			if not settings.get("auto_create_batches", 1):
+				frappe.throw(
+					_("Batch {0} does not exist and auto-create is disabled").format(batch_id)
+				)
+
 			frappe.logger().info(
 				f"🏥 SurgiShop ERP Scanner: Creating new batch: {batch_id}"
 			)
@@ -149,8 +184,9 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 			)
 
 			# Check if we need to update the expiry date
-			# Only update if the batch doesn't have an expiry date and we have one from the scan
-			if not batch_doc.expiry_date and expiry and len(expiry) == 6:
+			# Only update if setting is enabled, batch doesn't have expiry, and we have one from scan
+			update_missing_expiry = settings.get("update_missing_expiry", 1)
+			if update_missing_expiry and not batch_doc.expiry_date and expiry and len(expiry) == 6:
 				try:
 					# Parse the new expiry date from GS1 scan
 					expiry_date_obj = datetime.strptime(expiry, '%y%m%d')
@@ -167,6 +203,25 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 						f"🏥 SurgiShop ERP Scanner: Could not parse expiry date '{expiry}' for existing batch: {str(ve)}"
 					)
 			elif batch_doc.expiry_date and expiry:
+				# Check for expiry mismatch warning
+				warn_on_mismatch = settings.get("warn_on_expiry_mismatch", 1)
+				if warn_on_mismatch and len(expiry) == 6:
+					try:
+						scanned_expiry = datetime.strptime(expiry, '%y%m%d').strftime('%Y-%m-%d')
+						if str(batch_doc.expiry_date) != scanned_expiry:
+							frappe.logger().warning(
+								f"🏥 SurgiShop ERP Scanner: Expiry mismatch! Batch has {batch_doc.expiry_date}, scanned {scanned_expiry}"
+							)
+							# Add warning to response (will be shown to user)
+							frappe.msgprint(
+								_("Warning: Scanned expiry ({0}) differs from batch expiry ({1})").format(
+									scanned_expiry, batch_doc.expiry_date
+								),
+								indicator="orange",
+								alert=True
+							)
+					except ValueError:
+						pass
 				frappe.logger().info(
 					f"🏥 SurgiShop ERP Scanner: Batch {batch_doc.name} already has expiry date: {batch_doc.expiry_date}"
 				)

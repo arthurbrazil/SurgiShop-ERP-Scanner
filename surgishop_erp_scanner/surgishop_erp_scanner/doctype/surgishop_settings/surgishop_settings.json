@@ -19,6 +19,7 @@
 		"quantity_trigger_barcode",
 		"delete_row_trigger_barcode",
 		"batch_settings_section",
+		"batch_naming_format",
 		"warn_on_expiry_mismatch",
 		"update_missing_expiry",
 		"column_break_batch",
@@ -111,6 +112,14 @@
 			"fieldname": "batch_settings_section",
 			"fieldtype": "Section Break",
 			"label": "Batch Settings"
+		},
+		{
+			"default": "{item}-{lot}",
+			"description": "Format for auto-created batch names. {item} = Item Code, {lot} = Lot from barcode",
+			"fieldname": "batch_naming_format",
+			"fieldtype": "Select",
+			"label": "Batch Naming Format",
+			"options": "{item}-{lot}\n{lot}"
 		},
 		{
 			"default": "1",
@@ -211,7 +220,7 @@
 	"index_web_pages_for_search": 0,
 	"issingle": 1,
 	"links": [],
-	"modified": "2025-12-14 12:00:00.000000",
+	"modified": "2025-12-14 13:00:00.000000",
 	"modified_by": "Administrator",
 	"module": "SurgiShop ERP Scanner",
 	"name": "SurgiShop Settings",
