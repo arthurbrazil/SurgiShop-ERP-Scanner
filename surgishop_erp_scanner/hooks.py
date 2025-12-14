@@ -90,7 +90,10 @@ after_install = "surgishop_erp_scanner.surgishop_erp_scanner.install.after_insta
 
 # Ensure condition options are always applied after migrations, so user-managed
 # options win over fixture defaults.
-after_migrate = "surgishop_erp_scanner.surgishop_erp_scanner.condition_options.apply_condition_options_after_migrate"
+after_migrate = [
+	"surgishop_erp_scanner.surgishop_erp_scanner.condition_options.apply_condition_options_after_migrate",
+	"surgishop_erp_scanner.surgishop_erp_scanner.workspace_setup.ensure_surgishop_workspace_condition_settings_link"
+]
 
 # Uninstallation
 # ------------
