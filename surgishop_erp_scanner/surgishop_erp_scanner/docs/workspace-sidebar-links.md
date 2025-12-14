@@ -8,11 +8,15 @@ In ERPNext v16, workspaces have multiple components that control different parts
 
 | Component | Purpose | Where it appears |
 |-----------|---------|------------------|
-| **Shortcuts** (child table) | Quick access links | **Sidebar** (left panel) |
-| **Link Cards** (child table) | Grouped links | Main workspace page (tiles) |
+| **Links** (child table) | Sidebar navigation links | **Sidebar** (left panel) |
+| **Shortcuts** (child table) | Quick access tiles | **Tiles** (main workspace area) |
+| **Link Cards** (child table) | Grouped card links | Main workspace page (card sections) |
 | **Content** (JSON field) | Visual layout definition | Controls rendering of shortcuts/cards |
 
-**Important:** In v16, the sidebar is rendered from the **Shortcuts** table, NOT the Link Cards table. Additionally, the `content` JSON field may also need to be updated for the shortcut to render properly.
+**Important:** In v16:
+- The **sidebar** is rendered from the **Links** table
+- The **tiles** (shortcuts) in the main area come from the **Shortcuts** table AND the `content` JSON
+- You may need to update ALL THREE for complete functionality
 
 ## Manual Method (via UI)
 
