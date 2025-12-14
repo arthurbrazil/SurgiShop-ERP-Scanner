@@ -20,21 +20,37 @@ def _has_shortcut(shortcuts, label, link_to):
 	return False
 
 
-def ensure_surgishop_workspace_condition_settings_link():
-	"""
-	Ensure the SS - Scanner workspace shows SurgiShop Condition Settings.
+def _workspace_has_surgishop_settings(ws):
+	for link in ws.links or []:
+		if (link.get('link_type') or '') != 'DocType':
+			continue
+		if (link.get('link_to') or '') == 'SurgiShop Settings':
+			return True
 
-	In v16, workspace rendering is cached; this runs after migrate to keep the
-	link visible even if fixtures are not re-imported/overwritten.
-	"""
-	workspace_name = 'SS - Scanner'
+	for shortcut in ws.shortcuts or []:
+		if (shortcut.get('type') or '') != 'DocType':
+			continue
+		if (shortcut.get('link_to') or '') == 'SurgiShop Settings':
+			return True
+
+	try:
+		content = json.loads(ws.content or '[]')
+	except Exception:
+		content = []
+
+	for block in content:
+		if block.get('type') != 'shortcut':
+			continue
+		data = block.get('data') or {}
+		if (data.get('shortcut_name') or '') == 'SurgiShop Settings':
+			return True
+
+	return False
+
+
+def _ensure_condition_settings_link_on_workspace(ws):
 	label = 'SurgiShop Condition Settings'
 	link_to = 'SurgiShop Condition Settings'
-
-	if not frappe.db.exists('Workspace', workspace_name):
-		return
-
-	ws = frappe.get_doc('Workspace', workspace_name)
 
 	# Links (left sidebar)
 	if not _has_link(ws.links, label, link_to):
@@ -91,6 +107,24 @@ def ensure_surgishop_workspace_condition_settings_link():
 		)
 		ws.content = json.dumps(content)
 
-	ws.save(ignore_permissions=True)
+
+def ensure_surgishop_workspace_condition_settings_link():
+	"""
+	Ensure the workspace that contains SurgiShop Settings also shows
+	SurgiShop Condition Settings.
+
+	In v16, workspace rendering is cached; this runs after migrate to keep the
+	link visible even if fixtures are not re-imported/overwritten.
+	"""
+	target_workspaces = frappe.get_all('Workspace', pluck='name', limit_page_length=1000)
+
+	for workspace_name in target_workspaces:
+		ws = frappe.get_doc('Workspace', workspace_name)
+		if not _workspace_has_surgishop_settings(ws):
+			continue
+
+		_ensure_condition_settings_link_on_workspace(ws)
+		ws.save(ignore_permissions=True)
+
 	frappe.clear_cache(doctype='Workspace')
 
