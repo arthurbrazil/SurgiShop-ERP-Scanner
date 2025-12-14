@@ -121,10 +121,14 @@ This approach uses document event hooks instead of class inheritance, making it 
 
 See [docs/workspace-sidebar-links.md](docs/workspace-sidebar-links.md) for detailed documentation on how to programmatically add sidebar links to workspaces in ERPNext v16.
 
+**Key discovery:** In v16, the sidebar is controlled by a **completely separate DocType** called `Workspace Sidebar`, NOT the Workspace's links/shortcuts tables!
+
 Key points:
-- In v16, sidebar links come from the **Shortcuts** table (not Link Cards)
-- You may also need to update the **content** JSON field
+- Sidebar links come from the **Workspace Sidebar** DocType
+- Workspace `shortcuts` table controls **tiles** (not sidebar)
+- Workspace `links` table controls **link cards** (not sidebar)
 - Use `after_migrate` hooks for automatic injection
+- See `erpnext/workspace_sidebar/*.json` for examples
 
 ## License
 
