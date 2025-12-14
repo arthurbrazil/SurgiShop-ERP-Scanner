@@ -6,6 +6,8 @@
 	"doctype": "DocType",
 	"engine": "InnoDB",
 	"field_order": [
+		"scanner_settings_section",
+		"new_line_trigger_barcode",
 		"batch_expiry_section",
 		"allow_expired_batches_on_inbound",
 		"column_break_1",
@@ -19,6 +21,17 @@
 		"allow_expired_on_sales_return"
 	],
 	"fields": [
+		{
+			"fieldname": "scanner_settings_section",
+			"fieldtype": "Section Break",
+			"label": "Scanner Settings"
+		},
+		{
+			"description": "Scan this barcode to force the next item to be added on a new line instead of incrementing an existing row. Leave blank to disable this feature.",
+			"fieldname": "new_line_trigger_barcode",
+			"fieldtype": "Data",
+			"label": "New Line Trigger Barcode"
+		},
 		{
 			"fieldname": "batch_expiry_section",
 			"fieldtype": "Section Break",
@@ -93,7 +106,7 @@
 	"index_web_pages_for_search": 0,
 	"issingle": 1,
 	"links": [],
-	"modified": "2024-01-01 00:00:00.000000",
+	"modified": "2025-12-14 00:00:00.000000",
 	"modified_by": "Administrator",
 	"module": "SurgiShop ERP Scanner",
 	"name": "SurgiShop Settings",

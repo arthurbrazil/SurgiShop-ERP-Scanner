@@ -29,7 +29,11 @@ required_frappe_version = ">=16.0.0"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/surgishop_erp_scanner/css/surgishop_erp_scanner.css"
-# app_include_js = "/assets/surgishop_erp_scanner/js/surgishop_erp_scanner.js"
+app_include_js = [
+	"/assets/surgishop_erp_scanner/js/gs1-utils.js",
+	"/assets/surgishop_erp_scanner/js/custom-barcode-scanner.js",
+	"/assets/surgishop_erp_scanner/js/custom-serial-batch-selector.js"
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/surgishop_erp_scanner/css/surgishop_erp_scanner.css"

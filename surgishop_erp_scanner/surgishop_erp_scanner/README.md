@@ -4,11 +4,44 @@ Custom Frappe app for SurgiShop with ERPNext modifications.
 
 ## Features
 
+### GS1 Barcode Scanning
+
+Advanced barcode scanning with GS1-128 support for medical devices and pharmaceuticals.
+
+#### Features:
+- **GS1 Parser** - Parses GS1 barcodes extracting GTIN (01), Expiry (17), Lot (10), Serial (21), etc.
+- **Automatic Batch Creation** - Creates batches from scanned GS1 data with proper expiry dates
+- **Smart Row Matching** - Same item+batch+warehouse increments qty; different creates new row
+- **Warehouse Scanning** - Scan warehouse barcodes to set target warehouse
+- **Audio Feedback** - Success/error sounds for scan confirmation
+- **New Line Trigger** - Scan a special barcode to force next item onto a new line
+
+#### Supported Documents:
+- Stock Entry
+- Purchase Order
+- Purchase Receipt
+- Purchase Invoice
+- Sales Invoice
+- Delivery Note
+- Stock Reconciliation
+
+#### New Line Trigger:
+Configure a special barcode in **SurgiShop Settings** that, when scanned, forces the next item to be added on a **new row** instead of incrementing an existing row's quantity. Useful for:
+- Same item, different condition
+- Same item/batch requiring separate line tracking
+- Manual override of auto-increment behavior
+
 ### SurgiShop Settings
 
 This app includes a settings page accessible from the desk sidebar under **SurgiShop > SurgiShop Settings**.
 
-#### Settings Options:
+#### Scanner Settings:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **New Line Trigger Barcode** | (empty) | Barcode that triggers new line mode for next scan |
+
+#### Batch Expiry Settings:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
@@ -90,9 +123,17 @@ surgishop_erp_scanner/
 ├── hooks.py                           # App hooks and doc_events
 ├── fixtures/
 │   └── custom_field.json              # Condition field fixtures
+├── public/
+│   └── js/
+│       ├── gs1-utils.js               # GS1 barcode parser
+│       ├── custom-barcode-scanner.js  # Scanner override for forms
+│       └── custom-serial-batch-selector.js  # Serial/batch dialog enhancements
 ├── surgishop_erp_scanner/
+│   ├── api/
+│   │   ├── gs1_parser.py              # GS1 parsing and batch creation API
+│   │   └── barcode.py                 # Barcode lookup API
 │   ├── doctype/
-│   │   ├── surgishop_settings/        # Batch expiry settings
+│   │   ├── surgishop_settings/        # Scanner + batch expiry settings
 │   │   ├── surgishop_condition_settings/  # Condition options settings
 │   │   └── surgishop_condition_option/    # Condition option child table
 │   ├── overrides/
