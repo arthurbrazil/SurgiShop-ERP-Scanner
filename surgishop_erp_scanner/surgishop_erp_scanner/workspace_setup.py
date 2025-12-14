@@ -124,7 +124,22 @@ def ensure_surgishop_workspace_condition_settings_link():
 			continue
 
 		_ensure_condition_settings_link_on_workspace(ws)
-		ws.save(ignore_permissions=True)
+
+		# Some older/custom workspaces may be missing mandatory fields (v16 adds
+		# `type` as mandatory). Avoid breaking migrations by defaulting + bypassing
+		# mandatory validation on save.
+		if not ws.get('type'):
+			ws.type = 'Module'
+
+		ws.flags.ignore_mandatory = True
+
+		try:
+			ws.save(ignore_permissions=True)
+		except Exception:
+			frappe.log_error(
+				title='SurgiShop ERP Scanner: workspace link update failed',
+				message=frappe.get_traceback(),
+			)
 
 	frappe.clear_cache(doctype='Workspace')
 
