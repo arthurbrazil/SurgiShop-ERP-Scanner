@@ -116,30 +116,119 @@ def ensure_surgishop_workspace_condition_settings_link():
 	In v16, workspace rendering is cached; this runs after migrate to keep the
 	link visible even if fixtures are not re-imported/overwritten.
 	"""
-	target_workspaces = frappe.get_all('Workspace', pluck='name', limit_page_length=1000)
+	try:
+		meta = frappe.get_meta('Workspace')
+		links_child_dt = meta.get_field('links').options
+		shortcuts_child_dt = meta.get_field('shortcuts').options
 
-	for workspace_name in target_workspaces:
-		ws = frappe.get_doc('Workspace', workspace_name)
-		if not _workspace_has_surgishop_settings(ws):
-			continue
+		target_workspaces = frappe.get_all('Workspace', pluck='name', limit_page_length=1000)
 
-		_ensure_condition_settings_link_on_workspace(ws)
+		for workspace_name in target_workspaces:
+			ws = frappe.get_doc('Workspace', workspace_name)
+			if not _workspace_has_surgishop_settings(ws):
+				continue
 
-		# Some older/custom workspaces may be missing mandatory fields (v16 adds
-		# `type` as mandatory). Avoid breaking migrations by defaulting + bypassing
-		# mandatory validation on save.
-		if not ws.get('type'):
-			ws.type = 'Module'
+			# Keep the row healthy for v16 (some legacy workspaces may be missing it)
+			if not ws.get('type'):
+				frappe.db.set_value(
+					'Workspace',
+					workspace_name,
+					'type',
+					'Module',
+					update_modified=False,
+				)
 
-		ws.flags.ignore_mandatory = True
+			# Insert Link row without saving parent Workspace (avoids mandatory errors)
+			label = 'SurgiShop Condition Settings'
+			link_to = 'SurgiShop Condition Settings'
 
-		try:
-			ws.save(ignore_permissions=True)
-		except Exception:
-			frappe.log_error(
-				title='SurgiShop ERP Scanner: workspace link update failed',
-				message=frappe.get_traceback(),
-			)
+			if not frappe.db.exists(
+				links_child_dt,
+				{
+					'parent': workspace_name,
+					'parenttype': 'Workspace',
+					'parentfield': 'links',
+					'link_to': link_to,
+				},
+			):
+				frappe.get_doc(
+					{
+						'doctype': links_child_dt,
+						'parent': workspace_name,
+						'parenttype': 'Workspace',
+						'parentfield': 'links',
+						'label': label,
+						'link_to': link_to,
+						'link_type': 'DocType',
+						'type': 'Link',
+						'hidden': 0,
+						'is_query_report': 0,
+						'link_count': 0,
+						'onboard': 0,
+					}
+				).insert(ignore_permissions=True)
 
-	frappe.clear_cache(doctype='Workspace')
+			# Insert Shortcut row without saving parent Workspace
+			if not frappe.db.exists(
+				shortcuts_child_dt,
+				{
+					'parent': workspace_name,
+					'parenttype': 'Workspace',
+					'parentfield': 'shortcuts',
+					'link_to': link_to,
+				},
+			):
+				frappe.get_doc(
+					{
+						'doctype': shortcuts_child_dt,
+						'parent': workspace_name,
+						'parenttype': 'Workspace',
+						'parentfield': 'shortcuts',
+						'label': label,
+						'link_to': link_to,
+						'type': 'DocType',
+						'color': 'Blue',
+						'doc_view': '',
+						'stats_filter': '',
+					}
+				).insert(ignore_permissions=True)
+
+			# Best-effort: add tile to content JSON (DB-level update, no parent save)
+			try:
+				content = json.loads(ws.content or '[]')
+			except Exception:
+				content = []
+
+			needs_shortcut = True
+			for block in content:
+				if block.get('type') != 'shortcut':
+					continue
+				data = block.get('data') or {}
+				if (data.get('shortcut_name') or '') == label:
+					needs_shortcut = False
+					break
+
+			if needs_shortcut:
+				content.append(
+					{
+						'id': 'surgishopConditionSettingsShortcut',
+						'type': 'shortcut',
+						'data': {'shortcut_name': label, 'col': 4},
+					}
+				)
+				frappe.db.set_value(
+					'Workspace',
+					workspace_name,
+					'content',
+					json.dumps(content),
+					update_modified=False,
+				)
+
+		frappe.clear_cache(doctype='Workspace')
+	except Exception:
+		# Never break migrations due to workspace cosmetic updates
+		frappe.log_error(
+			title='SurgiShop ERP Scanner: workspace after_migrate failed',
+			message=frappe.get_traceback(),
+		)
 
