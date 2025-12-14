@@ -1,6 +1,6 @@
 {
 	"charts": [],
-	"content": "[{\"id\":\"kVXPfU9vFZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>SS - Scanner</b></span>\",\"col\":12}},{\"id\":\"Hy3vPQN2hR\",\"type\":\"paragraph\",\"data\":{\"text\":\"Configure SurgiShop ERPNext customizations.\",\"col\":12}},{\"id\":\"rABC123xyz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"SurgiShop Settings\",\"col\":4}}]",
+	"content": "[{\"id\":\"kVXPfU9vFZ\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>SS - Scanner</b></span>\",\"col\":12}},{\"id\":\"Hy3vPQN2hR\",\"type\":\"paragraph\",\"data\":{\"text\":\"Configure SurgiShop ERPNext customizations.\",\"col\":12}},{\"id\":\"rABC123xyz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"SurgiShop Settings\",\"col\":4}},{\"id\":\"pqrCondition\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"SurgiShop Condition Settings\",\"col\":4}}]",
 	"creation": "2024-01-01 00:00:00.000000",
 	"custom_blocks": [],
 	"docstatus": 0,
@@ -18,6 +18,16 @@
 			"label": "SurgiShop Settings",
 			"link_count": 0,
 			"link_to": "SurgiShop Settings",
+			"link_type": "DocType",
+			"onboard": 0,
+			"type": "Link"
+		},
+		{
+			"hidden": 0,
+			"is_query_report": 0,
+			"label": "SurgiShop Condition Settings",
+			"link_count": 0,
+			"link_to": "SurgiShop Condition Settings",
 			"link_type": "DocType",
 			"onboard": 0,
 			"type": "Link"
@@ -40,6 +50,14 @@
 			"doc_view": "",
 			"label": "SurgiShop Settings",
 			"link_to": "SurgiShop Settings",
+			"stats_filter": "",
+			"type": "DocType"
+		},
+		{
+			"color": "Blue",
+			"doc_view": "",
+			"label": "SurgiShop Condition Settings",
+			"link_to": "SurgiShop Condition Settings",
 			"stats_filter": "",
 			"type": "DocType"
 		}

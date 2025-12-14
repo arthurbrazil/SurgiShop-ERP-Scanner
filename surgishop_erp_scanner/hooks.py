@@ -88,6 +88,10 @@ required_frappe_version = ">=16.0.0"
 # before_install = "surgishop_erp_scanner.install.before_install"
 after_install = "surgishop_erp_scanner.surgishop_erp_scanner.install.after_install"
 
+# Ensure condition options are always applied after migrations, so user-managed
+# options win over fixture defaults.
+after_migrate = "surgishop_erp_scanner.surgishop_erp_scanner.condition_options.apply_condition_options_after_migrate"
+
 # Uninstallation
 # ------------
 

@@ -1,0 +1,57 @@
+{
+	"actions": [],
+	"allow_rename": 0,
+	"creation": "2025-12-14 00:00:00.000000",
+	"default_view": "Form",
+	"doctype": "DocType",
+	"engine": "InnoDB",
+	"field_order": [
+		"condition_section",
+		"conditions"
+	],
+	"fields": [
+		{
+			"fieldname": "condition_section",
+			"fieldtype": "Section Break",
+			"label": "Condition Options"
+		},
+		{
+			"description": "These options populate the Condition dropdown on Purchase Receipt Items and Stock Ledger Entries. The first dropdown option is always blank (no default selection).",
+			"fieldname": "conditions",
+			"fieldtype": "Table",
+			"label": "Conditions",
+			"options": "SurgiShop Condition Option"
+		}
+	],
+	"index_web_pages_for_search": 0,
+	"issingle": 1,
+	"links": [],
+	"modified": "2025-12-14 00:00:00.000000",
+	"modified_by": "Administrator",
+	"module": "SurgiShop ERP Scanner",
+	"name": "SurgiShop Condition Settings",
+	"naming_rule": "Expression (old style)",
+	"owner": "Administrator",
+	"permissions": [
+		{
+			"create": 1,
+			"delete": 1,
+			"email": 1,
+			"print": 1,
+			"read": 1,
+			"role": "System Manager",
+			"share": 1,
+			"write": 1
+		},
+		{
+			"read": 1,
+			"role": "Stock Manager",
+			"write": 1
+		}
+	],
+	"sort_field": "creation",
+	"sort_order": "DESC",
+	"states": [],
+	"track_changes": 1
+}
+
