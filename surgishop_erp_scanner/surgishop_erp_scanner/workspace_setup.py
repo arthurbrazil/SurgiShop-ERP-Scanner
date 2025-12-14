@@ -6,6 +6,30 @@ import json
 import frappe
 
 
+def _clone_child_doc(child_dt, template_name, overrides):
+	meta = frappe.get_meta(child_dt)
+	template = frappe.get_doc(child_dt, template_name)
+	new_doc = frappe.new_doc(child_dt)
+
+	for field in meta.fields:
+		fieldname = field.fieldname
+		if not fieldname:
+			continue
+		if fieldname in ['name', 'owner', 'creation', 'modified', 'modified_by', 'docstatus']:
+			continue
+
+		if fieldname in overrides:
+			new_doc.set(fieldname, overrides[fieldname])
+			continue
+
+		new_doc.set(fieldname, template.get(fieldname))
+
+	for key, value in (overrides or {}).items():
+		new_doc.set(key, value)
+
+	return new_doc
+
+
 def _has_link(links, label, link_to):
 	for link in links or []:
 		if (link.get('label') or '') == label and (link.get('link_to') or '') == link_to:
@@ -172,22 +196,47 @@ def ensure_surgishop_workspace_condition_settings_link():
 					'link_to': link_to,
 				},
 			):
-				frappe.get_doc(
-					{
-						'doctype': links_child_dt,
+				template_rows = frappe.get_all(
+					links_child_dt,
+					filters={
 						'parent': workspace_name,
 						'parenttype': 'Workspace',
 						'parentfield': 'links',
-						'label': label,
-						'link_to': link_to,
-						'link_type': 'DocType',
-						'type': 'Link',
-						'hidden': 0,
-						'is_query_report': 0,
-						'link_count': 0,
-						'onboard': 0,
-					}
-				).insert(ignore_permissions=True)
+						'link_to': 'SurgiShop Settings',
+					},
+					pluck='name',
+					limit_page_length=1,
+				)
+
+				if template_rows:
+					_clone_child_doc(
+						links_child_dt,
+						template_rows[0],
+						{
+							'parent': workspace_name,
+							'parenttype': 'Workspace',
+							'parentfield': 'links',
+							'label': label,
+							'link_to': link_to,
+						},
+					).insert(ignore_permissions=True)
+				else:
+					frappe.get_doc(
+						{
+							'doctype': links_child_dt,
+							'parent': workspace_name,
+							'parenttype': 'Workspace',
+							'parentfield': 'links',
+							'label': label,
+							'link_to': link_to,
+							'link_type': 'DocType',
+							'type': 'Link',
+							'hidden': 0,
+							'is_query_report': 0,
+							'link_count': 0,
+							'onboard': 0,
+						}
+					).insert(ignore_permissions=True)
 
 			# Insert Shortcut row without saving parent Workspace
 			if not frappe.db.exists(
@@ -199,20 +248,45 @@ def ensure_surgishop_workspace_condition_settings_link():
 					'link_to': link_to,
 				},
 			):
-				frappe.get_doc(
-					{
-						'doctype': shortcuts_child_dt,
+				template_rows = frappe.get_all(
+					shortcuts_child_dt,
+					filters={
 						'parent': workspace_name,
 						'parenttype': 'Workspace',
 						'parentfield': 'shortcuts',
-						'label': label,
-						'link_to': link_to,
-						'type': 'DocType',
-						'color': 'Blue',
-						'doc_view': '',
-						'stats_filter': '',
-					}
-				).insert(ignore_permissions=True)
+						'link_to': 'SurgiShop Settings',
+					},
+					pluck='name',
+					limit_page_length=1,
+				)
+
+				if template_rows:
+					_clone_child_doc(
+						shortcuts_child_dt,
+						template_rows[0],
+						{
+							'parent': workspace_name,
+							'parenttype': 'Workspace',
+							'parentfield': 'shortcuts',
+							'label': label,
+							'link_to': link_to,
+						},
+					).insert(ignore_permissions=True)
+				else:
+					frappe.get_doc(
+						{
+							'doctype': shortcuts_child_dt,
+							'parent': workspace_name,
+							'parenttype': 'Workspace',
+							'parentfield': 'shortcuts',
+							'label': label,
+							'link_to': link_to,
+							'type': 'DocType',
+							'color': 'Blue',
+							'doc_view': '',
+							'stats_filter': '',
+						}
+					).insert(ignore_permissions=True)
 
 			# Best-effort: add tile to content JSON (DB-level update, no parent save)
 			try:
@@ -220,23 +294,36 @@ def ensure_surgishop_workspace_condition_settings_link():
 			except Exception:
 				content = []
 
-			needs_shortcut = True
+			template_block = None
+			has_condition_block = False
+
 			for block in content:
 				if block.get('type') != 'shortcut':
 					continue
 				data = block.get('data') or {}
-				if (data.get('shortcut_name') or '') == label:
-					needs_shortcut = False
-					break
 
-			if needs_shortcut:
-				content.append(
-					{
-						'id': 'surgishopConditionSettingsShortcut',
-						'type': 'shortcut',
-						'data': {'shortcut_name': label, 'col': 4},
-					}
-				)
+				if (data.get('shortcut_name') or '') == label:
+					has_condition_block = True
+
+				if (data.get('shortcut_name') or '') == 'SurgiShop Settings':
+					template_block = block
+
+			if not has_condition_block:
+				if template_block:
+					new_block = json.loads(json.dumps(template_block))
+					new_block['id'] = 'surgishopConditionSettingsShortcut'
+					new_block.setdefault('data', {})
+					new_block['data']['shortcut_name'] = label
+					content.append(new_block)
+				else:
+					content.append(
+						{
+							'id': 'surgishopConditionSettingsShortcut',
+							'type': 'shortcut',
+							'data': {'shortcut_name': label, 'col': 4},
+						}
+					)
+
 				frappe.db.set_value(
 					'Workspace',
 					workspace_name,
