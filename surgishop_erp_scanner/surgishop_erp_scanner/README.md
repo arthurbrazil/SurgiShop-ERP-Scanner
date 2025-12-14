@@ -20,6 +20,20 @@ This app includes a settings page accessible from the desk sidebar under **Surgi
 | **Stock Reconciliation** | ✅ Enabled | Allow expired batches on Stock Reconciliation documents |
 | **Sales Returns** | ✅ Enabled | Allow expired batches on Sales Returns |
 
+### Condition Tracking
+
+Track the condition of items on Purchase Receipts and propagate to Stock Ledger Entries.
+
+#### Features:
+- **Condition field on Purchase Receipt Items** - Select from configurable options (e.g., "<3mo Dating", "Blister Damage", "Expired", etc.)
+- **Automatic propagation to Stock Ledger Entry** - Condition is copied on submit
+- **Configurable options** - Manage condition options via **SurgiShop Condition Settings**
+
+#### How to configure:
+1. Go to **SurgiShop > SurgiShop Condition Settings**
+2. Add/remove condition options as needed
+3. Save - options will be synced to the Purchase Receipt Item and Stock Ledger Entry fields
+
 ### Stock Controller Override
 
 This app overrides the default ERPNext StockController behavior to allow expired products to be received into the system for inbound transactions, based on the settings configured above.
@@ -74,16 +88,20 @@ bench run-tests --app surgishop_erp_scanner
 ```
 surgishop_erp_scanner/
 ├── hooks.py                           # App hooks and doc_events
+├── fixtures/
+│   └── custom_field.json              # Condition field fixtures
 ├── surgishop_erp_scanner/
 │   ├── doctype/
-│   │   └── surgishop_settings/        # Settings DocType
-│   │       ├── surgishop_settings.json
-│   │       └── surgishop_settings.py
+│   │   ├── surgishop_settings/        # Batch expiry settings
+│   │   ├── surgishop_condition_settings/  # Condition options settings
+│   │   └── surgishop_condition_option/    # Condition option child table
 │   ├── overrides/
-│   │   └── stock_controller.py        # Batch expiry validation override
-│   ├── workspace/
-│   │   └── surgishop/                 # Desk sidebar workspace
-│   │       └── surgishop.json
+│   │   ├── stock_controller.py        # Batch expiry validation override
+│   │   └── condition_tracking.py      # PR → SLE condition sync
+│   ├── docs/
+│   │   └── workspace-sidebar-links.md # v16 workspace documentation
+│   ├── condition_options.py           # Condition options sync logic
+│   ├── workspace_setup.py             # Workspace shortcut injection
 │   └── install.py                     # Post-install setup
 ```
 
@@ -96,6 +114,17 @@ surgishop_erp_scanner/
 5. For outbound transactions, standard ERPNext batch expiry validation is enforced
 
 This approach uses document event hooks instead of class inheritance, making it more resilient to ERPNext updates.
+
+## Developer Documentation
+
+### Adding Workspace Sidebar Links (v16)
+
+See [docs/workspace-sidebar-links.md](docs/workspace-sidebar-links.md) for detailed documentation on how to programmatically add sidebar links to workspaces in ERPNext v16.
+
+Key points:
+- In v16, sidebar links come from the **Shortcuts** table (not Link Cards)
+- You may also need to update the **content** JSON field
+- Use `after_migrate` hooks for automatic injection
 
 ## License
 
