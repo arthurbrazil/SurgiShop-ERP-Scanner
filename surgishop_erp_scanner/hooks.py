@@ -272,10 +272,6 @@ doc_events = {
 
 fixtures = [
 	{
-		"doctype": "Workspace",
-		"filters": [["module", "=", "SurgiShop ERP Scanner"]]
-	},
-	{
 		"doctype": "Custom Field",
 		"filters": [
 			["dt", "in", ["Purchase Receipt Item", "Stock Ledger Entry"]],
