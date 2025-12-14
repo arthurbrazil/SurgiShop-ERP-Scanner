@@ -16,24 +16,36 @@ def ensure_surgishop_workspace_condition_settings_link():
 	Add "SurgiShop Condition Settings" link to the "SurgiShop" workspace.
 	Runs after every migrate to ensure the link is present.
 	"""
+	# Print to console so we can verify hook is running
+	print("\n>>> SurgiShop: Running workspace link injection...")
+
 	log_lines = ['=== SurgiShop Workspace Link Injection ===']
 
 	try:
 		# Step 1: Check if workspace exists
 		workspace_name = 'SurgiShop'
 		if not frappe.db.exists('Workspace', workspace_name):
-			log_lines.append(f'SKIP: Workspace "{workspace_name}" does not exist')
+			msg = f'SKIP: Workspace "{workspace_name}" does not exist'
+			log_lines.append(msg)
+			print(f">>> SurgiShop: {msg}")
+
 			# Try to find workspaces that might contain our settings
 			all_workspaces = frappe.get_all('Workspace', pluck='name')
 			log_lines.append(f'Available workspaces: {all_workspaces}')
+			print(f">>> SurgiShop: Available workspaces: {all_workspaces}")
+
 			_log_info('\n'.join(log_lines))
 			return
 
-		log_lines.append(f'FOUND: Workspace "{workspace_name}" exists')
+		msg = f'FOUND: Workspace "{workspace_name}" exists'
+		log_lines.append(msg)
+		print(f">>> SurgiShop: {msg}")
 
 		# Step 2: Load workspace
 		ws = frappe.get_doc('Workspace', workspace_name)
-		log_lines.append(f'LOADED: Workspace has {len(ws.links or [])} links')
+		msg = f'LOADED: Workspace has {len(ws.links or [])} links'
+		log_lines.append(msg)
+		print(f">>> SurgiShop: {msg}")
 
 		# Step 3: List existing links for debugging
 		existing_links = []
@@ -41,10 +53,9 @@ def ensure_surgishop_workspace_condition_settings_link():
 			existing_links.append({
 				'label': link.get('label'),
 				'link_to': link.get('link_to'),
-				'link_type': link.get('link_type'),
-				'type': link.get('type'),
 			})
 		log_lines.append(f'EXISTING LINKS: {existing_links}')
+		print(f">>> SurgiShop: EXISTING LINKS: {existing_links}")
 
 		# Step 4: Check if our link already exists
 		link_exists = False
@@ -54,11 +65,15 @@ def ensure_surgishop_workspace_condition_settings_link():
 				break
 
 		if link_exists:
-			log_lines.append('SKIP: Link already exists, nothing to do')
+			msg = 'SKIP: Link already exists, nothing to do'
+			log_lines.append(msg)
+			print(f">>> SurgiShop: {msg}")
 			_log_info('\n'.join(log_lines))
 			return
 
-		log_lines.append('ADDING: Link does not exist, will add it')
+		msg = 'ADDING: Link does not exist, will add it'
+		log_lines.append(msg)
+		print(f">>> SurgiShop: {msg}")
 
 		# Step 5: Add the link
 		ws.append('links', {
@@ -71,50 +86,72 @@ def ensure_surgishop_workspace_condition_settings_link():
 			'link_count': 0,
 			'onboard': 0,
 		})
-		log_lines.append(f'APPENDED: Now have {len(ws.links)} links')
+		msg = f'APPENDED: Now have {len(ws.links)} links'
+		log_lines.append(msg)
+		print(f">>> SurgiShop: {msg}")
 
 		# Step 6: Fix mandatory fields
 		if not ws.get('type'):
 			ws.type = 'Workspace'
-			log_lines.append('FIXED: Set ws.type = "Workspace"')
+			msg = 'FIXED: Set ws.type = "Workspace"'
 		else:
-			log_lines.append(f'OK: ws.type already set to "{ws.type}"')
+			msg = f'OK: ws.type already set to "{ws.type}"'
+		log_lines.append(msg)
+		print(f">>> SurgiShop: {msg}")
 
 		# Step 7: Save
 		ws.flags.ignore_mandatory = True
 		ws.flags.ignore_permissions = True
-		log_lines.append('SAVING: About to call ws.save()...')
+		msg = 'SAVING: About to call ws.save()...'
+		log_lines.append(msg)
+		print(f">>> SurgiShop: {msg}")
 
 		ws.save()
-		log_lines.append('SAVED: ws.save() completed successfully')
+		msg = 'SAVED: ws.save() completed successfully'
+		log_lines.append(msg)
+		print(f">>> SurgiShop: {msg}")
 
 		# Step 8: Commit and clear cache
 		frappe.db.commit()
-		log_lines.append('COMMITTED: frappe.db.commit() done')
+		msg = 'COMMITTED: frappe.db.commit() done'
+		log_lines.append(msg)
+		print(f">>> SurgiShop: {msg}")
 
 		frappe.clear_cache(doctype='Workspace')
-		log_lines.append('CACHE CLEARED: frappe.clear_cache() done')
+		msg = 'CACHE CLEARED: frappe.clear_cache() done'
+		log_lines.append(msg)
+		print(f">>> SurgiShop: {msg}")
 
 		log_lines.append('=== SUCCESS ===')
+		print(">>> SurgiShop: === SUCCESS ===\n")
 		_log_info('\n'.join(log_lines))
 
 	except Exception as e:
-		log_lines.append(f'ERROR: {str(e)}')
+		msg = f'ERROR: {str(e)}'
+		log_lines.append(msg)
 		log_lines.append(f'TRACEBACK:\n{frappe.get_traceback()}')
+		print(f">>> SurgiShop: {msg}")
+		print(f">>> SurgiShop: Check Error Log for full traceback\n")
 		_log_error('\n'.join(log_lines))
 
 
 def _log_info(message):
 	"""Log informational message to Error Log (as a note, not error)."""
-	frappe.log_error(
-		title='SurgiShop Workspace Link - DEBUG INFO',
-		message=message,
-	)
+	try:
+		frappe.log_error(
+			title='SurgiShop Workspace Link - DEBUG INFO',
+			message=message,
+		)
+	except Exception:
+		pass
 
 
 def _log_error(message):
 	"""Log error message to Error Log."""
-	frappe.log_error(
-		title='SurgiShop Workspace Link - ERROR',
-		message=message,
-	)
+	try:
+		frappe.log_error(
+			title='SurgiShop Workspace Link - ERROR',
+			message=message,
+		)
+	except Exception:
+		pass
