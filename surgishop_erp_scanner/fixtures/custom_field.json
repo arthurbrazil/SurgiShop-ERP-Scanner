@@ -1,28 +1,27 @@
 [
-	{
-		"doctype": "Custom Field",
-		"dt": "Purchase Receipt Item",
-		"fieldname": "custom_condition",
-		"fieldtype": "Select",
-		"label": "Condition",
-		"options": "\nPristine\nMissing Patient Label\nDented Box\nPunctured Packaging\nDamaged Outer Carton\nTorn Seal\nCosmetic Damage\nOther",
-		"insert_after": "item_name",
-		"in_list_view": 1,
-		"allow_on_submit": 0,
-		"translatable": 0,
-		"name": "Purchase Receipt Item-custom_condition"
-	},
-	{
-		"doctype": "Custom Field",
-		"dt": "Stock Ledger Entry",
-		"fieldname": "custom_condition",
-		"fieldtype": "Select",
-		"label": "Condition",
-		"options": "\nPristine\nMissing Patient Label\nDented Box\nPunctured Packaging\nDamaged Outer Carton\nTorn Seal\nCosmetic Damage\nOther",
-		"insert_after": "item_code",
-		"read_only": 1,
-		"in_standard_filter": 1,
-		"name": "Stock Ledger Entry-custom_condition"
-	}
+  {
+    "doctype": "Custom Field",
+    "dt": "Purchase Receipt Item",
+    "fieldname": "custom_condition",
+    "fieldtype": "Select",
+    "label": "Condition",
+		"options": "\n<3mo Dating\nBlister Damage (Cracked, Dented)\nWater Issue\nBroken Seal\nExpired\nForeign Debris\nForeign Label\nKit (missing or non-verifiable components)\nMultiple Issues, Please Inquire\nOther\nPatient Label Issue\nProduct Damaged\nProduct Missing\nProduct Mismatch\nRecall\nResidue/Markings on Primary Packaging\nStains or Bio-Hazard\nSterility Breach\nTemperature Tag Exposure\nPrimary Label Damage\nBox Damaged",
+    "insert_after": "item_name",
+    "in_list_view": 1,
+    "allow_on_submit": 0,
+    "translatable": 0,
+    "name": "Purchase Receipt Item-custom_condition"
+  },
+  {
+    "doctype": "Custom Field",
+    "dt": "Stock Ledger Entry",
+    "fieldname": "custom_condition",
+    "fieldtype": "Select",
+    "label": "Condition",
+		"options": "\n<3mo Dating\nBlister Damage (Cracked, Dented)\nWater Issue\nBroken Seal\nExpired\nForeign Debris\nForeign Label\nKit (missing or non-verifiable components)\nMultiple Issues, Please Inquire\nOther\nPatient Label Issue\nProduct Damaged\nProduct Missing\nProduct Mismatch\nRecall\nResidue/Markings on Primary Packaging\nStains or Bio-Hazard\nSterility Breach\nTemperature Tag Exposure\nPrimary Label Damage\nBox Damaged",
+    "insert_after": "item_code",
+    "read_only": 1,
+    "in_standard_filter": 1,
+    "name": "Stock Ledger Entry-custom_condition"
+  }
 ]
-
