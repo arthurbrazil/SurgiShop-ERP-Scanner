@@ -13,8 +13,25 @@ if (typeof window.surgishop === "undefined") {
   window.surgishop = {}
 }
 
-// Flag for forcing new row on next scan
+// Scanner state flags
 window.surgishop.forceNewRow = false
+window.surgishop.forcePromptQty = false
+window.surgishop.pendingCondition = null
+
+// Settings (will be loaded from SurgiShop Settings)
+window.surgishop.settings = {
+  enableScanSounds: true,
+  promptForQuantity: false,
+  defaultScanQuantity: 1,
+  autoCreateBatches: true,
+  newLineTriggerBarcode: null,
+  conditionTriggerBarcode: null,
+  quantityTriggerBarcode: null,
+  deleteRowTriggerBarcode: null,
+  warnOnExpiryMismatch: true,
+  updateMissingExpiry: true,
+  strictGtinValidation: false,
+}
 
 /**
  * Our custom scanner class.
@@ -34,20 +51,20 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     this.uom_field = opts.uom_field || "uom"
     this.qty_field = opts.qty_field || "qty"
     this.warehouse_field = opts.warehouse_field || "warehouse"
+    this.condition_field = opts.condition_field || "custom_condition"
     this.max_qty_field = opts.max_qty_field
     this.dont_allow_new_row = opts.dont_allow_new_row
-    this.prompt_qty = opts.prompt_qty
     this.items_table_name = opts.items_table_name || "items"
 
-    // Enable sounds by default with Frappe built-in sounds
-    // 'submit' sound for success (pleasant beep)
-    // 'error' sound for failures (alert tone)
-    this.success_sound =
-      opts.play_success_sound !== undefined
-        ? opts.play_success_sound
-        : "submit"
-    this.fail_sound =
-      opts.play_fail_sound !== undefined ? opts.play_fail_sound : "error"
+    // Use settings for sounds
+    const settings = window.surgishop.settings
+    this.enable_sounds = settings.enableScanSounds
+    this.success_sound = this.enable_sounds ? "submit" : null
+    this.fail_sound = this.enable_sounds ? "error" : null
+
+    // Use settings for quantity behavior
+    this.prompt_qty = opts.prompt_qty || settings.promptForQuantity
+    this.default_qty = settings.defaultScanQuantity || 1
 
     this.scan_api =
       opts.scan_api ||
@@ -78,15 +95,15 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   }
 
   /**
-   * Check if this is a special trigger barcode (new line trigger, etc.)
+   * Check if this is a special trigger barcode
    * @param {string} input The scanned barcode
    * @returns {boolean} True if this is a trigger barcode that was handled
    */
   check_trigger_barcode(input) {
-    // Get the new line trigger barcode from settings (cached)
-    const newLineTrigger = window.surgishop.newLineTriggerBarcode || null
+    const settings = window.surgishop.settings
 
-    if (newLineTrigger && input === newLineTrigger) {
+    // New Line Trigger
+    if (settings.newLineTriggerBarcode && input === settings.newLineTriggerBarcode) {
       console.log(
         `%c🏥 NEW LINE TRIGGER scanned! Next item will be added on a new row.`,
         "color: #FF9800; font-weight: bold;"
@@ -97,7 +114,101 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       return true
     }
 
+    // Condition Trigger
+    if (settings.conditionTriggerBarcode && input === settings.conditionTriggerBarcode) {
+      console.log(
+        `%c🏥 CONDITION TRIGGER scanned! Enter condition for next item.`,
+        "color: #9C27B0; font-weight: bold;"
+      )
+      this.prompt_for_condition()
+      return true
+    }
+
+    // Quantity Trigger
+    if (settings.quantityTriggerBarcode && input === settings.quantityTriggerBarcode) {
+      console.log(
+        `%c🏥 QUANTITY TRIGGER scanned! Next scan will prompt for quantity.`,
+        "color: #2196F3; font-weight: bold;"
+      )
+      window.surgishop.forcePromptQty = true
+      this.show_alert("Quantity Mode: Next scan will prompt for quantity", "blue", 3)
+      this.play_success_sound()
+      return true
+    }
+
+    // Delete Row Trigger
+    if (settings.deleteRowTriggerBarcode && input === settings.deleteRowTriggerBarcode) {
+      console.log(
+        `%c🏥 DELETE ROW TRIGGER scanned! Removing last row.`,
+        "color: #F44336; font-weight: bold;"
+      )
+      this.delete_last_row()
+      return true
+    }
+
     return false
+  }
+
+  /**
+   * Prompt for condition selection
+   */
+  prompt_for_condition() {
+    // Get condition options from the field
+    const conditionField = frappe.meta.get_docfield(
+      this.frm.doctype + " Item",
+      this.condition_field
+    ) || frappe.meta.get_docfield(
+      "Purchase Receipt Item",
+      this.condition_field
+    )
+
+    let options = []
+    if (conditionField && conditionField.options) {
+      options = conditionField.options.split("\n").filter(o => o.trim())
+    }
+
+    if (options.length === 0) {
+      this.show_alert("No condition options configured", "orange")
+      return
+    }
+
+    frappe.prompt(
+      {
+        fieldtype: "Select",
+        label: "Select Condition for Next Scan",
+        fieldname: "condition",
+        options: options,
+        reqd: 1,
+      },
+      (values) => {
+        window.surgishop.pendingCondition = values.condition
+        this.show_alert(`Condition "${values.condition}" will be applied to next scan`, "green", 3)
+        this.play_success_sound()
+      },
+      "Set Condition",
+      "Apply"
+    )
+  }
+
+  /**
+   * Delete the last row from items table
+   */
+  delete_last_row() {
+    const items = this.frm.doc[this.items_table_name] || []
+    if (items.length === 0) {
+      this.show_alert("No items to delete", "orange")
+      this.play_fail_sound()
+      return
+    }
+
+    const lastRow = items[items.length - 1]
+    const itemCode = lastRow.item_code || "empty row"
+
+    frappe.model.clear_doc(lastRow.doctype, lastRow.name)
+    this.frm.refresh_field(this.items_table_name)
+
+    this.show_alert(`Deleted row: ${itemCode}`, "red", 3)
+    this.play_success_sound()
   }
 
   process_scan() {
@@ -109,7 +220,6 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         const input = this.scan_barcode_field.value
         this.scan_barcode_field.set_value("")
         if (!input) {
-          // Resolve promise for empty input to avoid uncaught promise rejection
           return resolve()
         }
 
@@ -128,7 +238,6 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
             "🏥 SurgiShop ERP Scanner: Detected GS1 barcode. Parsed:",
             gs1_data
           )
-          // Log and show scanned AIs
           console.log(
             `%c🏥 Scanned GS1 AIs: AI01 (GTIN)=${gs1_data.gtin}, AI17 (Expiry)=${gs1_data.expiry}, AI10 (Lot)=${gs1_data.lot}`,
             "color: #2196F3; font-weight: bold;"
@@ -175,7 +284,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         )
         this.clean_up()
         this.play_fail_sound()
-        reject(new Error(error_msg)) // Reject with meaningful error
+        reject(new Error(error_msg))
         return
       }
 
@@ -187,7 +296,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         this.handle_warehouse_scan(data.warehouse)
         this.clean_up()
         this.play_success_sound()
-        resolve() // Resolve without adding items
+        resolve()
         return
       }
 
@@ -210,7 +319,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         })
         .catch((err) => {
           this.play_fail_sound()
-          reject(err) // Propagate the error from update_table
+          reject(err)
         })
     } catch (e) {
       console.error(
@@ -226,7 +335,6 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       `🏥 SurgiShop ERP Scanner: Handling warehouse scan: ${warehouse_name}`
     )
 
-    // Set the warehouse on the document if there's a set_warehouse field
     if (frappe.meta.has_field(this.frm.doctype, "set_warehouse")) {
       frappe.model.set_value(
         this.frm.doctype,
@@ -239,7 +347,6 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       )
     }
 
-    // Store the last scanned warehouse if the field exists
     if (this.has_last_scanned_warehouse) {
       frappe.model.set_value(
         this.frm.doctype,
@@ -252,14 +359,9 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       )
     }
 
-    // Show confirmation message
     this.show_alert(`Warehouse set to: ${warehouse_name}`, "green", 3)
-
-    // Refresh the form to update any warehouse-dependent fields
     this.frm.refresh_fields()
 
-    // IMPORTANT: Clear any existing row warehouse fields to force new row creation
-    // This ensures that when we scan an item after changing warehouse, it creates a new row
     const warehouse_field = this.get_warehouse_field()
     if (warehouse_field && frappe.meta.has_field(this.frm.doctype, this.items_table_name)) {
       const items = this.frm.doc[this.items_table_name] || []
@@ -285,7 +387,6 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       })
       .then((r) => {
         console.log("🏥 SurgiShop ERP Scanner: GS1 API response:", r)
-        // Standardize the response to match the old API's structure for `update_table`
         if (r && r.message && r.message.found_item) {
           r.message.item_code = r.message.found_item
           r.message.batch_no = r.message.batch
@@ -355,12 +456,23 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
           `%c🏥 FORCE NEW ROW mode active - will create new row regardless of matching`,
           "color: #FF9800; font-weight: bold;"
         )
-        // Clear the flag immediately
         window.surgishop.forceNewRow = false
       }
 
+      // Check if we should prompt for quantity
+      const shouldPromptQty = window.surgishop.forcePromptQty || this.prompt_qty
+      if (window.surgishop.forcePromptQty) {
+        window.surgishop.forcePromptQty = false
+      }
+
+      // Check for pending condition
+      const pendingCondition = window.surgishop.pendingCondition
+      if (pendingCondition) {
+        window.surgishop.pendingCondition = null
+      }
+
       let row = forceNewRow
-        ? null // Force null to create new row
+        ? null
         : this.get_row_to_modify_on_scan(
             item_code,
             batch_no,
@@ -370,7 +482,6 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
           )
       const is_new_row = row && row.item_code ? false : true
 
-      // Log warehouse-specific behavior
       if (is_new_row && item_code) {
         const current_warehouse =
           this.frm.doc.last_scanned_warehouse ||
@@ -380,13 +491,9 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
           `🏥 SurgiShop ERP Scanner: Creating new row for item ${item_code} in warehouse ${current_warehouse}`
         )
         if (forceNewRow) {
-          console.log(
-            `🏥 Debug - Reason: FORCE NEW ROW mode was active`
-          )
+          console.log(`🏥 Debug - Reason: FORCE NEW ROW mode was active`)
         } else {
-          console.log(
-            `🏥 Debug - Reason: No matching row found with same warehouse`
-          )
+          console.log(`🏥 Debug - Reason: No matching row found with same warehouse`)
         }
       } else if (!is_new_row && item_code) {
         const current_warehouse =
@@ -409,7 +516,6 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
           return
         }
 
-        // Add new row if new item/batch is scanned
         row = frappe.model.add_child(
           this.frm.doc,
           cur_grid.doctype,
@@ -432,7 +538,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       frappe.run_serially([
         () => this.set_selector_trigger_flag(data),
         () =>
-          this.set_item(row, item_code, barcode, batch_no, serial_no).then(
+          this.set_item(row, item_code, barcode, batch_no, serial_no, shouldPromptQty).then(
             (qty) => {
               this.show_scan_message(row.idx, !is_new_row, qty)
             }
@@ -443,6 +549,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         () => this.set_batch_expiry_date(row, batch_expiry_date),
         () => this.set_barcode(row, barcode),
         () => this.set_warehouse(row),
+        () => this.set_condition(row, pendingCondition),
         () => this.clean_up(),
         () => this.revert_selector_flag(),
         () => resolve(row),
@@ -465,55 +572,60 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     frappe.flags.trigger_from_barcode_scanner = false
   }
 
-  set_item(row, item_code, barcode, batch_no, serial_no) {
+  set_item(row, item_code, barcode, batch_no, serial_no, shouldPromptQty = false) {
     return new Promise((resolve) => {
-      const increment = async (value = 1) => {
+      const increment = async (value) => {
+        const qty = value !== undefined ? value : this.default_qty
         const item_data = {
           item_code: item_code,
           use_serial_batch_fields: 1.0,
         }
         frappe.flags.trigger_from_barcode_scanner = true
         item_data[this.qty_field] =
-          Number(row[this.qty_field] || 0) + Number(value)
+          Number(row[this.qty_field] || 0) + Number(qty)
         await frappe.model.set_value(row.doctype, row.name, item_data)
-        return value
+        return qty
       }
 
-      if (this.prompt_qty) {
+      if (shouldPromptQty) {
         frappe.prompt(
-          `Please enter quantity for item ${item_code}`,
+          {
+            fieldtype: "Float",
+            label: `Enter quantity for ${item_code}`,
+            fieldname: "value",
+            default: this.default_qty,
+            reqd: 1,
+          },
           ({ value }) => {
-            increment(value).then((value) => resolve(value))
-          }
+            increment(value).then((qty) => resolve(qty))
+          },
+          "Enter Quantity",
+          "Add"
         )
       } else if (this.frm.has_items) {
-        this.prepare_item_for_scan(
-          row,
-          item_code,
-          barcode,
-          batch_no,
-          serial_no
-        )
+        this.prepare_item_for_scan(row, item_code, barcode, batch_no, serial_no)
+        resolve(this.default_qty)
       } else {
-        increment().then((value) => resolve(value))
+        increment().then((qty) => resolve(qty))
       }
     })
   }
 
   prepare_item_for_scan(row, item_code, barcode, batch_no, serial_no) {
     return new Promise((resolve) => {
-      const increment = async (value = 1) => {
+      const increment = async (value) => {
+        const qty = value !== undefined ? value : this.default_qty
         const item_data = {
           item_code: item_code,
           use_serial_batch_fields: 1.0,
         }
         item_data[this.qty_field] =
-          Number(row[this.qty_field] || 0) + Number(value)
+          Number(row[this.qty_field] || 0) + Number(qty)
         await frappe.model.set_value(row.doctype, row.name, item_data)
-        return value
+        return qty
       }
 
-      increment().then((value) => resolve(value))
+      increment().then((qty) => resolve(qty))
     })
   }
 
@@ -602,6 +714,26 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     )
   }
 
+  async set_condition(row, condition) {
+    if (!condition) return
+
+    if (frappe.meta.has_field(row.doctype, this.condition_field)) {
+      console.log(
+        `🏥 SurgiShop ERP Scanner: Setting condition: ${condition}`
+      )
+      await frappe.model.set_value(
+        row.doctype,
+        row.name,
+        this.condition_field,
+        condition
+      )
+    } else {
+      console.warn(
+        `🏥 SurgiShop ERP Scanner: Condition field ${this.condition_field} not found on ${row.doctype}`
+      )
+    }
+  }
+
   get_warehouse_field() {
     if (typeof this.warehouse_field === "function") {
       return this.warehouse_field(this.frm.doc)
@@ -651,7 +783,6 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       warehouse_field &&
       frappe.meta.has_field(cur_grid.doctype, warehouse_field)
 
-    // Get warehouse from multiple sources
     const warehouse = has_warehouse_field
       ? this.frm.doc.last_scanned_warehouse ||
         this.frm.doc.set_warehouse ||
@@ -674,8 +805,6 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         flt(row[this.qty_field]) < flt(row[this.max_qty_field])
       const item_scanned = row.has_item_scanned
 
-      // STRICT warehouse matching: Only match if warehouses are exactly the same
-      // This ensures same item/batch in different warehouses create separate line items
       let warehouse_match = true
       if (has_warehouse_field && warehouse_field) {
         const current_warehouse = warehouse || null
@@ -686,23 +815,19 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         )
 
         if (current_warehouse && existing_warehouse) {
-          // Both have warehouses - must match exactly
           warehouse_match = current_warehouse === existing_warehouse
           console.log(`🏥 Debug - Both have warehouses: ${warehouse_match}`)
         } else if (current_warehouse && !existing_warehouse) {
-          // Current scan has warehouse, existing row doesn't - don't match
           warehouse_match = false
           console.log(
             `🏥 Debug - Current has warehouse, existing doesn't: ${warehouse_match}`
           )
         } else if (!current_warehouse && existing_warehouse) {
-          // Current scan has no warehouse, existing row has one - don't match
           warehouse_match = false
           console.log(
             `🏥 Debug - Current has no warehouse, existing does: ${warehouse_match}`
           )
         } else {
-          // Both have no warehouse - match
           warehouse_match = true
           console.log(`🏥 Debug - Both have no warehouse: ${warehouse_match}`)
         }
@@ -742,14 +867,14 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   }
 
   play_success_sound() {
-    if (this.success_sound) {
+    if (this.enable_sounds && this.success_sound) {
       console.log(`🔊 Playing success sound: ${this.success_sound}`)
       frappe.utils.play_sound(this.success_sound)
     }
   }
 
   play_fail_sound() {
-    if (this.fail_sound) {
+    if (this.enable_sounds && this.fail_sound) {
       console.log(`🔊 Playing error sound: ${this.fail_sound}`)
       frappe.utils.play_sound(this.fail_sound)
     }
@@ -772,21 +897,47 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 }
 
 /**
- * Load the new line trigger barcode from SurgiShop Settings
+ * Load all scanner settings from SurgiShop Settings
  */
 function loadSurgiShopScannerSettings() {
   frappe.call({
     method: "frappe.client.get_value",
     args: {
       doctype: "SurgiShop Settings",
-      fieldname: ["new_line_trigger_barcode"],
+      fieldname: [
+        "enable_scan_sounds",
+        "prompt_for_quantity",
+        "default_scan_quantity",
+        "auto_create_batches",
+        "new_line_trigger_barcode",
+        "condition_trigger_barcode",
+        "quantity_trigger_barcode",
+        "delete_row_trigger_barcode",
+        "warn_on_expiry_mismatch",
+        "update_missing_expiry",
+        "strict_gtin_validation",
+      ],
     },
     async: true,
     callback: (r) => {
       if (r && r.message) {
-        window.surgishop.newLineTriggerBarcode = r.message.new_line_trigger_barcode || null
+        const s = r.message
+        window.surgishop.settings = {
+          enableScanSounds: s.enable_scan_sounds !== 0,
+          promptForQuantity: s.prompt_for_quantity === 1,
+          defaultScanQuantity: s.default_scan_quantity || 1,
+          autoCreateBatches: s.auto_create_batches !== 0,
+          newLineTriggerBarcode: s.new_line_trigger_barcode || null,
+          conditionTriggerBarcode: s.condition_trigger_barcode || null,
+          quantityTriggerBarcode: s.quantity_trigger_barcode || null,
+          deleteRowTriggerBarcode: s.delete_row_trigger_barcode || null,
+          warnOnExpiryMismatch: s.warn_on_expiry_mismatch !== 0,
+          updateMissingExpiry: s.update_missing_expiry !== 0,
+          strictGtinValidation: s.strict_gtin_validation === 1,
+        }
         console.log(
-          `🏥 SurgiShop ERP Scanner: New Line Trigger Barcode set to: "${window.surgishop.newLineTriggerBarcode}"`
+          `🏥 SurgiShop ERP Scanner: Settings loaded:`,
+          window.surgishop.settings
         )
       }
     },
@@ -803,7 +954,6 @@ frappe.ready(() => {
  * We wrap this in a router 'change' event to ensure the Frappe framework is fully
  * loaded and ready before we try to attach our form-specific hooks.
  */
-// Main override logic using router.on('change')
 frappe.router.on("change", () => {
   const doctypes_to_override = [
     "Stock Entry",
@@ -820,7 +970,7 @@ frappe.router.on("change", () => {
     frappe.get_route()[0] === "Form" &&
     doctypes_to_override.includes(frappe.get_route()[1])
   ) {
-    const frm = cur_frm // Use cur_frm for the current form
+    const frm = cur_frm
     if (frm && !frm.custom_scanner_attached) {
       frappe.ui.form.on(frappe.get_route()[1], {
         scan_barcode: function (frm) {
@@ -848,4 +998,3 @@ frappe.router.on("change", () => {
     }
   }
 })
-

@@ -9,6 +9,7 @@ Custom Frappe app for SurgiShop with ERPNext modifications.
 Advanced barcode scanning with GS1-128 support for medical devices and pharmaceuticals.
 
 #### Features:
+
 - **GS1 Parser** - Parses GS1 barcodes extracting GTIN (01), Expiry (17), Lot (10), Serial (21), etc.
 - **Automatic Batch Creation** - Creates batches from scanned GS1 data with proper expiry dates
 - **Smart Row Matching** - Same item+batch+warehouse increments qty; different creates new row
@@ -17,6 +18,7 @@ Advanced barcode scanning with GS1-128 support for medical devices and pharmaceu
 - **New Line Trigger** - Scan a special barcode to force next item onto a new line
 
 #### Supported Documents:
+
 - Stock Entry
 - Purchase Order
 - Purchase Receipt
@@ -25,11 +27,16 @@ Advanced barcode scanning with GS1-128 support for medical devices and pharmaceu
 - Delivery Note
 - Stock Reconciliation
 
-#### New Line Trigger:
-Configure a special barcode in **SurgiShop Settings** that, when scanned, forces the next item to be added on a **new row** instead of incrementing an existing row's quantity. Useful for:
-- Same item, different condition
-- Same item/batch requiring separate line tracking
-- Manual override of auto-increment behavior
+#### Trigger Barcodes:
+
+Configure special barcodes that trigger actions on the next scan:
+
+| Trigger                        | Description                                               |
+| ------------------------------ | --------------------------------------------------------- |
+| **New Line Trigger**           | Forces next item onto a new row (vs incrementing qty)     |
+| **Condition Trigger**          | Prompts for condition, applies to next scanned item       |
+| **Quantity Trigger**           | Prompts for quantity on next scan                         |
+| **Delete Row Trigger**         | Removes the last scanned row from the items table         |
 
 ### SurgiShop Settings
 
@@ -37,32 +44,54 @@ This app includes a settings page accessible from the desk sidebar under **Surgi
 
 #### Scanner Settings:
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| **New Line Trigger Barcode** | (empty) | Barcode that triggers new line mode for next scan |
+| Setting                    | Default    | Description                                              |
+| -------------------------- | ---------- | -------------------------------------------------------- |
+| **Enable Scan Sounds**     | ✅ Enabled | Play audio feedback on scan success/failure              |
+| **Prompt for Quantity**    | ❌ Disabled| Ask for quantity on every scan                           |
+| **Default Scan Quantity**  | 1          | Quantity to add per scan (when not prompting)            |
+| **Auto-Create Batches**    | ✅ Enabled | Create batch if it doesn't exist (vs showing error)      |
+
+#### Trigger Barcodes:
+
+| Setting                        | Default | Description                                        |
+| ------------------------------ | ------- | -------------------------------------------------- |
+| **New Line Trigger Barcode**   | (empty) | Barcode that forces next item onto new row         |
+| **Condition Trigger Barcode**  | (empty) | Barcode that prompts for condition on next scan    |
+| **Quantity Trigger Barcode**   | (empty) | Barcode that prompts for quantity on next scan     |
+| **Delete Row Trigger Barcode** | (empty) | Barcode that deletes the last scanned row          |
+
+#### Batch Settings:
+
+| Setting                    | Default    | Description                                              |
+| -------------------------- | ---------- | -------------------------------------------------------- |
+| **Warn on Expiry Mismatch**| ✅ Enabled | Alert if scanned expiry differs from existing batch      |
+| **Update Missing Expiry**  | ✅ Enabled | Update batch expiry from scan if batch has none          |
+| **Strict GTIN Validation** | ❌ Disabled| Require exact GTIN match in Item Barcodes                |
 
 #### Batch Expiry Settings:
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| **Allow Expired Batches on Inbound** | ✅ Enabled | Master toggle for allowing expired batches on inbound transactions |
+| Setting                              | Default     | Description                                                         |
+| ------------------------------------ | ----------- | ------------------------------------------------------------------- |
+| **Allow Expired Batches on Inbound** | ✅ Enabled  | Master toggle for allowing expired batches on inbound transactions  |
 | **Skip All Batch Expiry Validation** | ❌ Disabled | WARNING: Completely disables expiry validation for all transactions |
-| **Purchase Receipt** | ✅ Enabled | Allow expired batches on Purchase Receipt documents |
-| **Purchase Invoice** | ✅ Enabled | Allow expired batches on Purchase Invoice documents |
-| **Stock Entry (Material Receipt)** | ✅ Enabled | Allow expired batches on Stock Entry with Material Receipt purpose |
-| **Stock Reconciliation** | ✅ Enabled | Allow expired batches on Stock Reconciliation documents |
-| **Sales Returns** | ✅ Enabled | Allow expired batches on Sales Returns |
+| **Purchase Receipt**                 | ✅ Enabled  | Allow expired batches on Purchase Receipt documents                 |
+| **Purchase Invoice**                 | ✅ Enabled  | Allow expired batches on Purchase Invoice documents                 |
+| **Stock Entry (Material Receipt)**   | ✅ Enabled  | Allow expired batches on Stock Entry with Material Receipt purpose  |
+| **Stock Reconciliation**             | ✅ Enabled  | Allow expired batches on Stock Reconciliation documents             |
+| **Sales Returns**                    | ✅ Enabled  | Allow expired batches on Sales Returns                              |
 
 ### Condition Tracking
 
 Track the condition of items on Purchase Receipts and propagate to Stock Ledger Entries.
 
 #### Features:
+
 - **Condition field on Purchase Receipt Items** - Select from configurable options (e.g., "<3mo Dating", "Blister Damage", "Expired", etc.)
 - **Automatic propagation to Stock Ledger Entry** - Condition is copied on submit
 - **Configurable options** - Manage condition options via **SurgiShop Condition Settings**
 
 #### How to configure:
+
 1. Go to **SurgiShop > SurgiShop Condition Settings**
 2. Add/remove condition options as needed
 3. Save - options will be synced to the Purchase Receipt Item and Stock Ledger Entry fields
@@ -72,19 +101,22 @@ Track the condition of items on Purchase Receipts and propagate to Stock Ledger 
 This app overrides the default ERPNext StockController behavior to allow expired products to be received into the system for inbound transactions, based on the settings configured above.
 
 #### What it does:
+
 - **Allows expired products** to be received through inbound transactions (Purchase Receipt, Purchase Invoice, Stock Entry with Material Receipt, etc.) when enabled in settings
 - **Maintains expiry validation** for outbound transactions to prevent selling expired products
 - **Preserves all other stock validation** functionality
 
 #### Supported Inbound Transactions:
+
 - Purchase Receipt
-- Purchase Invoice  
+- Purchase Invoice
 - Stock Entry (Material Receipt purpose)
 - Stock Entry (Material Transfer with only target warehouse)
 - Stock Reconciliation (positive quantities)
 - Sales Returns (Sales Invoice/Delivery Note with is_return=True)
 
 #### Outbound Transactions (expiry validation still enforced):
+
 - Purchase Returns
 - Stock Entry (Material Issue)
 - Stock Entry (Material Transfer with both source and target warehouses)
@@ -94,12 +126,14 @@ This app overrides the default ERPNext StockController behavior to allow expired
 ## Installation
 
 1. Install the app in your Frappe/ERPNext instance:
+
    ```bash
    bench get-app https://github.com/arthurbrazil/SurgiShop-ERP-Scanner.git
    bench install-app surgishop_erp_scanner
    ```
 
 2. Run migrations to create the settings DocType:
+
    ```bash
    bench migrate
    ```
@@ -165,6 +199,7 @@ See [docs/workspace-sidebar-links.md](docs/workspace-sidebar-links.md) for detai
 **Key discovery:** In v16, the sidebar is controlled by a **completely separate DocType** called `Workspace Sidebar`, NOT the Workspace's links/shortcuts tables!
 
 Key points:
+
 - Sidebar links come from the **Workspace Sidebar** DocType
 - Workspace `shortcuts` table controls **tiles** (not sidebar)
 - Workspace `links` table controls **link cards** (not sidebar)

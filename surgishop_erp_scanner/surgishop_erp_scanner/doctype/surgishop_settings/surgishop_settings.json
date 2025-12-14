@@ -7,7 +7,22 @@
 	"engine": "InnoDB",
 	"field_order": [
 		"scanner_settings_section",
+		"enable_scan_sounds",
+		"prompt_for_quantity",
+		"column_break_scanner_1",
+		"default_scan_quantity",
+		"auto_create_batches",
+		"trigger_barcodes_section",
 		"new_line_trigger_barcode",
+		"condition_trigger_barcode",
+		"column_break_triggers",
+		"quantity_trigger_barcode",
+		"delete_row_trigger_barcode",
+		"batch_settings_section",
+		"warn_on_expiry_mismatch",
+		"update_missing_expiry",
+		"column_break_batch",
+		"strict_gtin_validation",
 		"batch_expiry_section",
 		"allow_expired_batches_on_inbound",
 		"column_break_1",
@@ -27,10 +42,100 @@
 			"label": "Scanner Settings"
 		},
 		{
-			"description": "Scan this barcode to force the next item to be added on a new line instead of incrementing an existing row. Leave blank to disable this feature.",
+			"default": "1",
+			"description": "Play audio feedback sounds on scan success/failure",
+			"fieldname": "enable_scan_sounds",
+			"fieldtype": "Check",
+			"label": "Enable Scan Sounds"
+		},
+		{
+			"default": "0",
+			"description": "Prompt for quantity on each scan instead of auto-incrementing by default quantity",
+			"fieldname": "prompt_for_quantity",
+			"fieldtype": "Check",
+			"label": "Prompt for Quantity"
+		},
+		{
+			"fieldname": "column_break_scanner_1",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "1",
+			"description": "Quantity to add per scan (used when not prompting for quantity)",
+			"fieldname": "default_scan_quantity",
+			"fieldtype": "Int",
+			"label": "Default Scan Quantity"
+		},
+		{
+			"default": "1",
+			"description": "Automatically create batch if it doesn't exist (vs showing error)",
+			"fieldname": "auto_create_batches",
+			"fieldtype": "Check",
+			"label": "Auto-Create Batches"
+		},
+		{
+			"fieldname": "trigger_barcodes_section",
+			"fieldtype": "Section Break",
+			"label": "Trigger Barcodes",
+			"description": "Special barcodes that trigger actions on the next scan"
+		},
+		{
+			"description": "Scan this barcode to force the next item to be added on a new line instead of incrementing an existing row",
 			"fieldname": "new_line_trigger_barcode",
 			"fieldtype": "Data",
 			"label": "New Line Trigger Barcode"
+		},
+		{
+			"description": "Scan this barcode followed by a condition option to set condition for the next item scan",
+			"fieldname": "condition_trigger_barcode",
+			"fieldtype": "Data",
+			"label": "Condition Trigger Barcode"
+		},
+		{
+			"fieldname": "column_break_triggers",
+			"fieldtype": "Column Break"
+		},
+		{
+			"description": "Scan this barcode to prompt for quantity on the next item scan",
+			"fieldname": "quantity_trigger_barcode",
+			"fieldtype": "Data",
+			"label": "Quantity Trigger Barcode"
+		},
+		{
+			"description": "Scan this barcode to delete/remove the last scanned row",
+			"fieldname": "delete_row_trigger_barcode",
+			"fieldtype": "Data",
+			"label": "Delete Row Trigger Barcode"
+		},
+		{
+			"fieldname": "batch_settings_section",
+			"fieldtype": "Section Break",
+			"label": "Batch Settings"
+		},
+		{
+			"default": "1",
+			"description": "Show warning if scanned expiry date differs from existing batch expiry",
+			"fieldname": "warn_on_expiry_mismatch",
+			"fieldtype": "Check",
+			"label": "Warn on Expiry Mismatch"
+		},
+		{
+			"default": "1",
+			"description": "If existing batch has no expiry date, update it from scanned barcode",
+			"fieldname": "update_missing_expiry",
+			"fieldtype": "Check",
+			"label": "Update Missing Expiry"
+		},
+		{
+			"fieldname": "column_break_batch",
+			"fieldtype": "Column Break"
+		},
+		{
+			"default": "0",
+			"description": "Require exact GTIN match in Item Barcodes (vs allowing any barcode lookup)",
+			"fieldname": "strict_gtin_validation",
+			"fieldtype": "Check",
+			"label": "Strict GTIN Validation"
 		},
 		{
 			"fieldname": "batch_expiry_section",
@@ -106,7 +211,7 @@
 	"index_web_pages_for_search": 0,
 	"issingle": 1,
 	"links": [],
-	"modified": "2025-12-14 00:00:00.000000",
+	"modified": "2025-12-14 12:00:00.000000",
 	"modified_by": "Administrator",
 	"module": "SurgiShop ERP Scanner",
 	"name": "SurgiShop Settings",
