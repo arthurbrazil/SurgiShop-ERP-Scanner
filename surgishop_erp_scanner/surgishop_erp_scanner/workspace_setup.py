@@ -121,7 +121,28 @@ def ensure_surgishop_workspace_condition_settings_link():
 		links_child_dt = meta.get_field('links').options
 		shortcuts_child_dt = meta.get_field('shortcuts').options
 
-		target_workspaces = frappe.get_all('Workspace', pluck='name', limit_page_length=1000)
+		# Prefer DB-driven detection: find the Workspace that already has a sidebar
+		# link to "SurgiShop Settings", since that's exactly where we want to add the
+		# Condition Settings link.
+		target_workspaces = list(
+			set(
+				frappe.get_all(
+					links_child_dt,
+					filters={
+						'parenttype': 'Workspace',
+						'parentfield': 'links',
+						'link_to': 'SurgiShop Settings',
+					},
+					pluck='parent',
+					limit_page_length=1000,
+				)
+			)
+		)
+
+		# Fallback: scan all workspaces if the DB query finds none (e.g. if the
+		# workspace only uses content JSON/shortcuts).
+		if not target_workspaces:
+			target_workspaces = frappe.get_all('Workspace', pluck='name', limit_page_length=1000)
 
 		for workspace_name in target_workspaces:
 			ws = frappe.get_doc('Workspace', workspace_name)
@@ -224,7 +245,9 @@ def ensure_surgishop_workspace_condition_settings_link():
 					update_modified=False,
 				)
 
+		# Clear caches so Desk sidebar/workspace page refresh picks up changes.
 		frappe.clear_cache(doctype='Workspace')
+		frappe.clear_cache()
 	except Exception:
 		# Never break migrations due to workspace cosmetic updates
 		frappe.log_error(
