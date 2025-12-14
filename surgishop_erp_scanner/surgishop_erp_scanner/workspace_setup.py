@@ -7,8 +7,8 @@ Workspace link/shortcut injection for ERPNext v16.
 Adds "SurgiShop Condition Settings" to the "SurgiShop" workspace.
 
 In v16:
-- SIDEBAR (left panel) = from `links` child table
-- TILES (main area) = from `shortcuts` child table + content JSON
+- SIDEBAR (left panel) = from `links` child table + content JSON "link" blocks
+- TILES (main area) = from `shortcuts` child table + content JSON "shortcut" blocks
 """
 
 import json
@@ -19,9 +19,6 @@ import frappe
 def ensure_surgishop_workspace_condition_settings_link():
 	"""
 	Add "SurgiShop Condition Settings" to the "SurgiShop" workspace.
-	- Adds to `links` table (for sidebar)
-	- Adds to `shortcuts` table (for tiles)
-	- Adds to content JSON (for rendering)
 	"""
 	print("\n>>> SurgiShop: Running workspace link/shortcut injection...")
 
@@ -31,16 +28,12 @@ def ensure_surgishop_workspace_condition_settings_link():
 			print(f">>> SurgiShop: SKIP - Workspace '{workspace_name}' does not exist")
 			return
 
-		print(f">>> SurgiShop: FOUND - Workspace '{workspace_name}' exists")
-
 		ws = frappe.get_doc('Workspace', workspace_name)
 		target_doctype = 'SurgiShop Condition Settings'
 		modified = False
 
-		# === 1. LINKS TABLE (sidebar) ===
+		# === 1. LINKS TABLE ===
 		existing_links = [l.get('link_to') for l in ws.links or []]
-		print(f">>> SurgiShop: EXISTING LINKS: {existing_links}")
-
 		if target_doctype not in existing_links:
 			ws.append('links', {
 				'label': 'SurgiShop Condition Settings',
@@ -51,25 +44,19 @@ def ensure_surgishop_workspace_condition_settings_link():
 				'is_query_report': 0,
 				'onboard': 0,
 			})
-			print(">>> SurgiShop: ADDED to links table (sidebar)")
+			print(">>> SurgiShop: ADDED to links table")
 			modified = True
-		else:
-			print(">>> SurgiShop: Link already exists in links table")
 
-		# === 2. SHORTCUTS TABLE (tiles) ===
+		# === 2. SHORTCUTS TABLE ===
 		existing_shortcuts = [s.get('link_to') for s in ws.shortcuts or []]
-		print(f">>> SurgiShop: EXISTING SHORTCUTS: {existing_shortcuts}")
-
 		if target_doctype not in existing_shortcuts:
 			ws.append('shortcuts', {
 				'label': 'SurgiShop Condition Settings',
 				'link_to': target_doctype,
 				'type': 'DocType',
 			})
-			print(">>> SurgiShop: ADDED to shortcuts table (tiles)")
+			print(">>> SurgiShop: ADDED to shortcuts table")
 			modified = True
-		else:
-			print(">>> SurgiShop: Shortcut already exists in shortcuts table")
 
 		# === 3. CONTENT JSON ===
 		content = []
@@ -78,65 +65,92 @@ def ensure_surgishop_workspace_condition_settings_link():
 		except Exception:
 			content = []
 
-		content_has_shortcut = any(
+		# Check for shortcut block
+		has_shortcut_block = any(
 			block.get('type') == 'shortcut' and
 			(block.get('data') or {}).get('shortcut_name') == target_doctype
 			for block in content
 		)
 
-		if not content_has_shortcut:
-			# Find existing SurgiShop Settings shortcut block to clone structure
-			template_block = None
+		# Check for link block
+		has_link_block = any(
+			block.get('type') == 'link' and
+			(block.get('data') or {}).get('link_to') == target_doctype
+			for block in content
+		)
+
+		if not has_shortcut_block:
+			# Clone from existing SurgiShop Settings shortcut if possible
+			template = None
 			for block in content:
 				if block.get('type') == 'shortcut':
 					data = block.get('data') or {}
 					if data.get('shortcut_name') == 'SurgiShop Settings':
-						template_block = block
+						template = block
 						break
 
-			if template_block:
-				new_block = json.loads(json.dumps(template_block))
+			if template:
+				new_block = json.loads(json.dumps(template))
 				new_block['id'] = 'surgishop_condition_settings_shortcut'
 				new_block['data']['shortcut_name'] = target_doctype
-				content.append(new_block)
-				print(">>> SurgiShop: ADDED to content JSON (cloned from template)")
 			else:
-				content.append({
+				new_block = {
 					'id': 'surgishop_condition_settings_shortcut',
 					'type': 'shortcut',
-					'data': {
-						'shortcut_name': target_doctype,
-						'col': 4
-					}
-				})
-				print(">>> SurgiShop: ADDED to content JSON (new block)")
-
-			ws.content = json.dumps(content)
+					'data': {'shortcut_name': target_doctype, 'col': 4}
+				}
+			content.append(new_block)
+			print(">>> SurgiShop: ADDED shortcut block to content JSON")
 			modified = True
+
+		if not has_link_block:
+			# Also add a "link" type block for sidebar
+			# Clone from existing SurgiShop Settings link if possible
+			template = None
+			for block in content:
+				if block.get('type') == 'link':
+					data = block.get('data') or {}
+					if data.get('link_to') == 'SurgiShop Settings':
+						template = block
+						break
+
+			if template:
+				new_block = json.loads(json.dumps(template))
+				new_block['id'] = 'surgishop_condition_settings_link'
+				new_block['data']['link_to'] = target_doctype
+				if 'label' in new_block.get('data', {}):
+					new_block['data']['label'] = 'SurgiShop Condition Settings'
+			else:
+				new_block = {
+					'id': 'surgishop_condition_settings_link',
+					'type': 'link',
+					'data': {
+						'link_to': target_doctype,
+						'link_type': 'DocType',
+						'label': 'SurgiShop Condition Settings'
+					}
+				}
+			content.append(new_block)
+			print(">>> SurgiShop: ADDED link block to content JSON")
+			modified = True
+
+		if modified:
+			ws.content = json.dumps(content)
+
+			if not ws.get('type'):
+				ws.type = 'Workspace'
+
+			ws.flags.ignore_mandatory = True
+			ws.flags.ignore_permissions = True
+			ws.save()
+			print(">>> SurgiShop: SAVED")
+
+			frappe.db.commit()
+			frappe.clear_cache(doctype='Workspace')
+			frappe.clear_cache()
+			print(">>> SurgiShop: === SUCCESS ===\n")
 		else:
-			print(">>> SurgiShop: Shortcut already exists in content JSON")
-
-		if not modified:
-			print(">>> SurgiShop: SKIP - Nothing to update")
-			return
-
-		# Fix mandatory fields
-		if not ws.get('type'):
-			ws.type = 'Workspace'
-
-		# Save
-		ws.flags.ignore_mandatory = True
-		ws.flags.ignore_permissions = True
-		print(">>> SurgiShop: SAVING...")
-
-		ws.save()
-		print(">>> SurgiShop: SAVED")
-
-		frappe.db.commit()
-		frappe.clear_cache(doctype='Workspace')
-		frappe.clear_cache()
-		print(">>> SurgiShop: COMMITTED and ALL CACHES CLEARED")
-		print(">>> SurgiShop: === SUCCESS ===\n")
+			print(">>> SurgiShop: SKIP - Already exists everywhere\n")
 
 	except Exception as e:
 		print(f">>> SurgiShop: ERROR - {str(e)}")
