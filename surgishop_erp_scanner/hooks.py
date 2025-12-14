@@ -142,7 +142,8 @@ after_install = "surgishop_erp_scanner.surgishop_erp_scanner.install.after_insta
 
 doc_events = {
 	"Purchase Receipt": {
-		"validate": "surgishop_erp_scanner.surgishop_erp_scanner.overrides.stock_controller.validate_serialized_batch_with_expired_override"
+		"validate": "surgishop_erp_scanner.surgishop_erp_scanner.overrides.stock_controller.validate_serialized_batch_with_expired_override",
+		"on_submit": "surgishop_erp_scanner.surgishop_erp_scanner.overrides.condition_tracking.sync_purchase_receipt_condition_to_sle"
 	},
 	"Purchase Invoice": {
 		"validate": "surgishop_erp_scanner.surgishop_erp_scanner.overrides.stock_controller.validate_serialized_batch_with_expired_override"
@@ -266,5 +267,12 @@ fixtures = [
 	{
 		"doctype": "Workspace",
 		"filters": [["module", "=", "SurgiShop ERP Scanner"]]
+	},
+	{
+		"doctype": "Custom Field",
+		"filters": [
+			["dt", "in", ["Purchase Receipt Item", "Stock Ledger Entry"]],
+			["fieldname", "=", "custom_condition"]
+		]
 	}
 ]
