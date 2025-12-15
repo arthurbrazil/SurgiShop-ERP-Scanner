@@ -44,12 +44,13 @@ This app includes a settings page accessible from the desk sidebar under **Surgi
 
 #### Scanner Settings:
 
-| Setting                   | Default     | Description                                         |
-| ------------------------- | ----------- | --------------------------------------------------- |
-| **Enable Scan Sounds**    | ✅ Enabled  | Play audio feedback on scan success/failure         |
-| **Prompt for Quantity**   | ❌ Disabled | Ask for quantity on every scan                      |
-| **Default Scan Quantity** | 1           | Quantity to add per scan (when not prompting)       |
-| **Auto-Create Batches**   | ✅ Enabled  | Create batch if it doesn't exist (vs showing error) |
+| Setting                              | Default     | Description                                         |
+| ------------------------------------ | ----------- | --------------------------------------------------- |
+| **Enable Scan Sounds**               | ✅ Enabled  | Play audio feedback on scan success/failure         |
+| **Prompt for Quantity**              | ❌ Disabled | Ask for quantity on every scan                      |
+| **Disable Serial/Batch Selector**    | ✅ Enabled  | Skip the popup dialog, auto-populate from GS1 scan  |
+| **Default Scan Quantity**            | 1           | Quantity to add per scan (when not prompting)       |
+| **Auto-Create Batches**              | ✅ Enabled  | Create batch if it doesn't exist (vs showing error) |
 
 #### Trigger Barcodes:
 
@@ -62,14 +63,15 @@ This app includes a settings page accessible from the desk sidebar under **Surgi
 
 #### Batch Settings:
 
-| Setting                     | Default       | Description                                         |
-| --------------------------- | ------------- | --------------------------------------------------- |
-| **Batch Naming Format**     | `{item}-{lot}`| Format for auto-created batches                     |
-| **Warn on Expiry Mismatch** | ✅ Enabled    | Alert if scanned expiry differs from existing batch |
-| **Update Missing Expiry**   | ✅ Enabled    | Update batch expiry from scan if batch has none     |
-| **Strict GTIN Validation**  | ❌ Disabled   | Require exact GTIN match in Item Barcodes           |
+| Setting                     | Default        | Description                                         |
+| --------------------------- | -------------- | --------------------------------------------------- |
+| **Batch Naming Format**     | `{item}-{lot}` | Format for auto-created batches                     |
+| **Warn on Expiry Mismatch** | ✅ Enabled     | Alert if scanned expiry differs from existing batch |
+| **Update Missing Expiry**   | ✅ Enabled     | Update batch expiry from scan if batch has none     |
+| **Strict GTIN Validation**  | ❌ Disabled    | Require exact GTIN match in Item Barcodes           |
 
 **Batch Naming Format Options:**
+
 - `{item}-{lot}` - e.g., `ITEM-001-LOT123` (default, avoids conflicts)
 - `{lot}` - e.g., `LOT123` (shorter, but may conflict across items)
 

@@ -9,6 +9,7 @@
 		"scanner_settings_section",
 		"enable_scan_sounds",
 		"prompt_for_quantity",
+		"disable_serial_batch_selector",
 		"column_break_scanner_1",
 		"default_scan_quantity",
 		"auto_create_batches",
@@ -55,6 +56,13 @@
 			"fieldname": "prompt_for_quantity",
 			"fieldtype": "Check",
 			"label": "Prompt for Quantity"
+		},
+		{
+			"default": "1",
+			"description": "Disable the Serial/Batch selector dialog popup. When enabled, batch info is auto-populated from GS1 scan without dialog.",
+			"fieldname": "disable_serial_batch_selector",
+			"fieldtype": "Check",
+			"label": "Disable Serial/Batch Selector Dialog"
 		},
 		{
 			"fieldname": "column_break_scanner_1",
@@ -220,7 +228,7 @@
 	"index_web_pages_for_search": 0,
 	"issingle": 1,
 	"links": [],
-	"modified": "2025-12-14 13:00:00.000000",
+	"modified": "2025-12-14 14:00:00.000000",
 	"modified_by": "Administrator",
 	"module": "SurgiShop ERP Scanner",
 	"name": "SurgiShop Settings",

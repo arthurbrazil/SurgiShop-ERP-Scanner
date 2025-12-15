@@ -24,6 +24,7 @@ window.surgishop.settings = {
   promptForQuantity: false,
   defaultScanQuantity: 1,
   autoCreateBatches: true,
+  disableSerialBatchSelector: true,
   newLineTriggerBarcode: null,
   conditionTriggerBarcode: null,
   quantityTriggerBarcode: null,
@@ -558,6 +559,14 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   }
 
   set_selector_trigger_flag(data) {
+    const settings = window.surgishop.settings
+
+    // If globally disabled, always hide the dialog
+    if (settings.disableSerialBatchSelector) {
+      frappe.flags.hide_serial_batch_dialog = true
+      return
+    }
+
     const { batch_no, serial_no, has_batch_no, has_serial_no } = data
     const require_selecting_batch = has_batch_no && !batch_no
     const require_selecting_serial = has_serial_no && !serial_no
@@ -909,6 +918,7 @@ function loadSurgiShopScannerSettings() {
         "prompt_for_quantity",
         "default_scan_quantity",
         "auto_create_batches",
+        "disable_serial_batch_selector",
         "new_line_trigger_barcode",
         "condition_trigger_barcode",
         "quantity_trigger_barcode",
@@ -927,6 +937,7 @@ function loadSurgiShopScannerSettings() {
           promptForQuantity: s.prompt_for_quantity === 1,
           defaultScanQuantity: s.default_scan_quantity || 1,
           autoCreateBatches: s.auto_create_batches !== 0,
+          disableSerialBatchSelector: s.disable_serial_batch_selector !== 0,
           newLineTriggerBarcode: s.new_line_trigger_barcode || null,
           conditionTriggerBarcode: s.condition_trigger_barcode || null,
           quantityTriggerBarcode: s.quantity_trigger_barcode || null,
@@ -939,13 +950,21 @@ function loadSurgiShopScannerSettings() {
           `🏥 SurgiShop ERP Scanner: Settings loaded:`,
           window.surgishop.settings
         )
+
+        // Apply global flag to disable serial/batch selector
+        if (window.surgishop.settings.disableSerialBatchSelector) {
+          frappe.flags.hide_serial_batch_dialog = true
+          console.log(
+            `🏥 SurgiShop ERP Scanner: Serial/Batch selector dialog DISABLED globally`
+          )
+        }
       }
     },
   })
 }
 
 // Load settings on page load
-frappe.ready(() => {
+$(document).ready(() => {
   loadSurgiShopScannerSettings()
 })
 
