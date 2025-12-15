@@ -527,6 +527,8 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
           row.doctype,
           row.name
         )
+        // Refresh the grid to ensure the new row is properly rendered in DOM
+        cur_grid.refresh()
         this.frm.has_items = false
       }
 
@@ -538,6 +540,8 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 
       frappe.run_serially([
         () => this.set_selector_trigger_flag(data),
+        // Small delay to ensure grid is fully rendered
+        () => new Promise(resolve => setTimeout(resolve, 100)),
         () =>
           this.set_item(row, item_code, barcode, batch_no, serial_no, shouldPromptQty).then(
             (qty) => {
