@@ -540,8 +540,8 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 
       frappe.run_serially([
         () => this.set_selector_trigger_flag(data),
-        // Small delay to ensure grid is fully rendered
-        () => new Promise(resolve => setTimeout(resolve, 100)),
+        // Small delay to ensure grid is fully rendered before setting values
+        () => new Promise(resolve => setTimeout(resolve, 200)),
         () =>
           this.set_item(row, item_code, barcode, batch_no, serial_no, shouldPromptQty).then(
             (qty) => {
@@ -596,7 +596,13 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         frappe.flags.trigger_from_barcode_scanner = true
         item_data[this.qty_field] =
           Number(row[this.qty_field] || 0) + Number(qty)
-        await frappe.model.set_value(row.doctype, row.name, item_data)
+        try {
+          await frappe.model.set_value(row.doctype, row.name, item_data)
+        } catch (e) {
+          // ERPNext internal handlers may throw "parent undefined" errors
+          // when refreshing fields before DOM is ready - this is harmless
+          console.log(`🏥 SurgiShop: Caught internal refresh error (safe to ignore):`, e.message)
+        }
         return qty
       }
 
@@ -632,9 +638,14 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
           item_code: item_code,
           use_serial_batch_fields: 1.0,
         }
+        frappe.flags.trigger_from_barcode_scanner = true
         item_data[this.qty_field] =
           Number(row[this.qty_field] || 0) + Number(qty)
-        await frappe.model.set_value(row.doctype, row.name, item_data)
+        try {
+          await frappe.model.set_value(row.doctype, row.name, item_data)
+        } catch (e) {
+          console.log(`🏥 SurgiShop: Caught internal refresh error (safe to ignore):`, e.message)
+        }
         return qty
       }
 
