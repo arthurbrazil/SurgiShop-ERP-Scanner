@@ -807,12 +807,21 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 
     const matching_row = (row) => {
       const item_match = row.item_code == item_code
-      const batch_match =
-        !row[this.batch_no_field] || row[this.batch_no_field] == batch_no
+      
+      // For batch matching: if we're scanning a batch, require exact match
+      // If row has no batch, it can still match (will be updated with batch)
+      // If row has a batch, it must match the scanned batch exactly
+      const row_batch = row[this.batch_no_field] || ""
+      const scan_batch = batch_no || ""
+      let batch_match = true
+      if (is_batch_no_scan) {
+        // Scanning with a batch - must match exactly or row must be empty
+        batch_match = !row_batch || row_batch === scan_batch
+      }
+      
       const uom_match = !uom || row[this.uom_field] == uom
       const qty_in_limit =
         flt(row[this.qty_field]) < flt(row[this.max_qty_field])
-      const item_scanned = row.has_item_scanned
 
       let warehouse_match = true
       if (has_warehouse_field && warehouse_field) {
@@ -827,14 +836,15 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
           warehouse_match = current_warehouse === existing_warehouse
           console.log(`🏥 Debug - Both have warehouses: ${warehouse_match}`)
         } else if (current_warehouse && !existing_warehouse) {
-          warehouse_match = false
+          // Allow matching if existing row has no warehouse (will be set)
+          warehouse_match = true
           console.log(
-            `🏥 Debug - Current has warehouse, existing doesn't: ${warehouse_match}`
+            `🏥 Debug - Current has warehouse, existing doesn't - allowing match`
           )
         } else if (!current_warehouse && existing_warehouse) {
-          warehouse_match = false
+          warehouse_match = true
           console.log(
-            `🏥 Debug - Current has no warehouse, existing does: ${warehouse_match}`
+            `🏥 Debug - Current has no warehouse, existing does - allowing match`
           )
         } else {
           warehouse_match = true
@@ -846,8 +856,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         item_match &&
         uom_match &&
         warehouse_match &&
-        !item_scanned &&
-        (!is_batch_no_scan || batch_match) &&
+        batch_match &&
         (!check_max_qty || qty_in_limit)
 
       if (item_match && !matches) {
@@ -857,9 +866,10 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
             item_match,
             uom_match,
             warehouse_match,
-            item_scanned,
             batch_match,
             qty_in_limit,
+            row_batch,
+            scan_batch,
             current_warehouse: warehouse,
             existing_warehouse: row[warehouse_field],
           }
