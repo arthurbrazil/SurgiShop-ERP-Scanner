@@ -824,8 +824,12 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       }
       
       const uom_match = !uom || row[this.uom_field] == uom
-      const qty_in_limit =
-        flt(row[this.qty_field]) < flt(row[this.max_qty_field])
+      
+      // qty_in_limit: only apply if max_qty is actually set (> 0)
+      const max_qty = flt(row[this.max_qty_field])
+      const qty_in_limit = max_qty > 0 
+        ? flt(row[this.qty_field]) < max_qty 
+        : true  // No max set, always allow
 
       let warehouse_match = true
       if (has_warehouse_field && warehouse_field) {
