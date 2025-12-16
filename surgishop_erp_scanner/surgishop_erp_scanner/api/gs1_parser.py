@@ -88,7 +88,7 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 				as_dict=True
 			) or {}
 			if not item_info:
-				frappe.throw(_("No item found for scanned GTIN"))
+				frappe.throw(_("No item found for GTIN: {0}. Please add this barcode to the correct Item.").format(gtin))
 
 		# Proceed without the mismatch check, as we've validated above
 		item_code = item_info.get("name")

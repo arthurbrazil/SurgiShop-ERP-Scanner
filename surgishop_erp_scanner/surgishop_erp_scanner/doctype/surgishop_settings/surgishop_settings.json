@@ -19,6 +19,7 @@
 		"column_break_triggers",
 		"quantity_trigger_barcode",
 		"delete_row_trigger_barcode",
+		"generate_trigger_barcodes",
 		"batch_settings_section",
 		"batch_naming_format",
 		"warn_on_expiry_mismatch",
@@ -115,6 +116,12 @@
 			"fieldname": "delete_row_trigger_barcode",
 			"fieldtype": "Data",
 			"label": "Delete Row Trigger Barcode"
+		},
+		{
+			"fieldname": "generate_trigger_barcodes",
+			"fieldtype": "Button",
+			"label": "Generate Printable Trigger Barcodes",
+			"description": "Generate a printable sheet with barcodes for all configured triggers"
 		},
 		{
 			"fieldname": "batch_settings_section",
@@ -228,7 +235,7 @@
 	"index_web_pages_for_search": 0,
 	"issingle": 1,
 	"links": [],
-	"modified": "2025-12-14 14:00:00.000000",
+	"modified": "2025-12-16 10:00:00.000000",
 	"modified_by": "Administrator",
 	"module": "SurgiShop ERP Scanner",
 	"name": "SurgiShop Settings",
