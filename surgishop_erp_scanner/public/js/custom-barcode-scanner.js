@@ -1046,3 +1046,58 @@ frappe.router.on("change", () => {
     }
   }
 })
+
+/**
+ * Auto-fetch expiry date when batch_no is manually changed in child tables
+ * This handles cases where users select a batch manually (not via scanner)
+ */
+function setupBatchExpiryAutoFetch() {
+  // List of child table doctypes that should auto-fetch expiry
+  const childDoctypes = [
+    "Purchase Receipt Item",
+    "Purchase Invoice Item",
+    "Stock Entry Detail",
+    "Delivery Note Item",
+    "Sales Invoice Item",
+  ]
+
+  childDoctypes.forEach((childDoctype) => {
+    frappe.ui.form.on(childDoctype, {
+      batch_no: function (frm, cdt, cdn) {
+        const row = locals[cdt][cdn]
+        const batchNo = row.batch_no
+
+        if (batchNo) {
+          // Fetch expiry date from Batch doctype
+          frappe.db.get_value("Batch", batchNo, "expiry_date", (r) => {
+            if (r && r.expiry_date) {
+              frappe.model.set_value(cdt, cdn, "custom_expiration_date", r.expiry_date)
+              console.log(
+                `🏥 SurgiShop ERP Scanner: Auto-fetched expiry date ${r.expiry_date} for batch ${batchNo}`
+              )
+            } else {
+              // Clear expiry if batch has no expiry date
+              frappe.model.set_value(cdt, cdn, "custom_expiration_date", null)
+              console.log(
+                `🏥 SurgiShop ERP Scanner: Batch ${batchNo} has no expiry date`
+              )
+            }
+          })
+        } else {
+          // Clear expiry if batch is cleared
+          frappe.model.set_value(cdt, cdn, "custom_expiration_date", null)
+        }
+      },
+    })
+  })
+
+  console.log(
+    `%c🏥 SurgiShop ERP Scanner: Batch expiry auto-fetch handlers registered`,
+    "color: #4CAF50; font-weight: bold;"
+  )
+}
+
+// Initialize batch expiry auto-fetch on page ready
+$(document).ready(() => {
+  setupBatchExpiryAutoFetch()
+})

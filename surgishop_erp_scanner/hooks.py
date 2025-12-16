@@ -279,7 +279,7 @@ fixtures = [
 		"doctype": "Custom Field",
 		"filters": [
 			["dt", "in", ["Purchase Receipt Item", "Stock Ledger Entry"]],
-			["fieldname", "=", "custom_condition"]
+			["fieldname", "in", ["custom_condition", "custom_expiration_date"]]
 		]
 	}
 ]
