@@ -15,14 +15,12 @@ window.addEventListener("unhandledrejection", (event) => {
   const reason = event.reason;
   // Check various ways the error message might be structured
   const message =
-    (reason && reason.message) ||
-    (reason && String(reason)) ||
-    "";
+    (reason && reason.message) || (reason && String(reason)) || "";
 
   if (
     message.includes("can't access property") ||
     message.includes("cannot read property") ||
-    message.includes("parent") && message.includes("undefined")
+    (message.includes("parent") && message.includes("undefined"))
   ) {
     // Suppress this specific ERPNext timing error
     event.preventDefault();
@@ -854,6 +852,34 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         // ERPNext internal refresh errors - safe to ignore
       }
     }
+
+    // Apply condition warehouse behavior
+    const settings = window.surgishop.settings;
+    const behavior = settings.conditionWarehouseBehavior;
+    const warehouse_field = this.get_warehouse_field();
+
+    if (behavior && behavior !== "No Change" && warehouse_field) {
+      let targetWarehouse = null;
+
+      if (behavior === "Use Accepted Warehouse" && settings.acceptedWarehouse) {
+        targetWarehouse = settings.acceptedWarehouse;
+      } else if (behavior === "Use Rejected Warehouse" && settings.rejectedWarehouse) {
+        targetWarehouse = settings.rejectedWarehouse;
+      }
+
+      if (targetWarehouse && frappe.meta.has_field(row.doctype, warehouse_field)) {
+        try {
+          await frappe.model.set_value(
+            row.doctype,
+            row.name,
+            warehouse_field,
+            targetWarehouse
+          );
+        } catch (e) {
+          // ERPNext internal refresh errors - safe to ignore
+        }
+      }
+    }
   }
 
   get_warehouse_field() {
@@ -1028,6 +1054,9 @@ function loadSurgiShopScannerSettings() {
         "warn_on_expiry_mismatch",
         "update_missing_expiry",
         "strict_gtin_validation",
+        "condition_warehouse_behavior",
+        "accepted_warehouse",
+        "rejected_warehouse",
       ],
     },
     async: true,
@@ -1047,6 +1076,9 @@ function loadSurgiShopScannerSettings() {
           warnOnExpiryMismatch: s.warn_on_expiry_mismatch !== 0,
           updateMissingExpiry: s.update_missing_expiry !== 0,
           strictGtinValidation: s.strict_gtin_validation === 1,
+          conditionWarehouseBehavior: s.condition_warehouse_behavior || "No Change",
+          acceptedWarehouse: s.accepted_warehouse || null,
+          rejectedWarehouse: s.rejected_warehouse || null,
         };
 
         // Apply global flag to disable serial/batch selector

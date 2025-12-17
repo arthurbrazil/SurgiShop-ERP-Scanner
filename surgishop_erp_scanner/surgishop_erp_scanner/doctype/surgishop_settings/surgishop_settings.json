@@ -20,6 +20,11 @@
 		"quantity_trigger_barcode",
 		"delete_row_trigger_barcode",
 		"generate_trigger_barcodes",
+		"condition_warehouse_section",
+		"condition_warehouse_behavior",
+		"column_break_condition_wh",
+		"accepted_warehouse",
+		"rejected_warehouse",
 		"batch_settings_section",
 		"batch_naming_format",
 		"warn_on_expiry_mismatch",
@@ -122,6 +127,40 @@
 			"fieldtype": "Button",
 			"label": "Generate Printable Trigger Barcodes",
 			"description": "Generate a printable sheet with barcodes for all configured triggers"
+		},
+		{
+			"fieldname": "condition_warehouse_section",
+			"fieldtype": "Section Break",
+			"label": "Condition Warehouse Settings",
+			"description": "Configure default warehouse behavior for items scanned with a condition"
+		},
+		{
+			"default": "No Change",
+			"description": "When a condition is applied to a scanned item, automatically set the warehouse",
+			"fieldname": "condition_warehouse_behavior",
+			"fieldtype": "Select",
+			"label": "Condition Warehouse Behavior",
+			"options": "No Change\nUse Accepted Warehouse\nUse Rejected Warehouse"
+		},
+		{
+			"fieldname": "column_break_condition_wh",
+			"fieldtype": "Column Break"
+		},
+		{
+			"depends_on": "eval:doc.condition_warehouse_behavior === 'Use Accepted Warehouse'",
+			"description": "Warehouse for items with conditions that are accepted",
+			"fieldname": "accepted_warehouse",
+			"fieldtype": "Link",
+			"label": "Accepted Warehouse",
+			"options": "Warehouse"
+		},
+		{
+			"depends_on": "eval:doc.condition_warehouse_behavior === 'Use Rejected Warehouse'",
+			"description": "Warehouse for items with conditions that are rejected",
+			"fieldname": "rejected_warehouse",
+			"fieldtype": "Link",
+			"label": "Rejected Warehouse",
+			"options": "Warehouse"
 		},
 		{
 			"fieldname": "batch_settings_section",
