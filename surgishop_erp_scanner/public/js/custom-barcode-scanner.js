@@ -47,6 +47,7 @@ window.addEventListener("error", (event) => {
 window.surgishop.forceNewRow = false;
 window.surgishop.forcePromptQty = false;
 window.surgishop.pendingCondition = null;
+window.surgishop.pendingConditionWarehouse = null;
 
 // Settings (will be loaded from SurgiShop Settings)
 window.surgishop.settings = {
@@ -215,6 +216,53 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
    */
   show_touch_condition_dialog(options) {
     const self = this;
+    const settings = window.surgishop.settings;
+
+    // Determine default warehouse selection based on settings
+    let defaultWarehouse = "none";
+    if (settings.conditionWarehouseBehavior === "Use Accepted Warehouse") {
+      defaultWarehouse = "accepted";
+    } else if (settings.conditionWarehouseBehavior === "Use Rejected Warehouse") {
+      defaultWarehouse = "rejected";
+    }
+
+    // Build warehouse section HTML (only show if warehouses are configured)
+    const hasAccepted = settings.acceptedWarehouse;
+    const hasRejected = settings.rejectedWarehouse;
+    const showWarehouseSection = hasAccepted || hasRejected;
+
+    const warehouseSectionHtml = showWarehouseSection
+      ? `
+        <div class="warehouse-section">
+          <div class="warehouse-label">Warehouse:</div>
+          <div class="warehouse-toggle">
+            ${
+              hasAccepted
+                ? `<button type="button" class="warehouse-btn ${
+                    defaultWarehouse === "accepted" ? "selected" : ""
+                  }" data-warehouse="accepted">
+                  ✓ Accepted
+                </button>`
+                : ""
+            }
+            ${
+              hasRejected
+                ? `<button type="button" class="warehouse-btn ${
+                    defaultWarehouse === "rejected" ? "selected" : ""
+                  }" data-warehouse="rejected">
+                  ✗ Rejected
+                </button>`
+                : ""
+            }
+            <button type="button" class="warehouse-btn ${
+              defaultWarehouse === "none" ? "selected" : ""
+            }" data-warehouse="none">
+              Default
+            </button>
+          </div>
+        </div>
+      `
+      : "";
 
     // Create custom dialog with large touch-friendly buttons
     const dialog = new frappe.ui.Dialog({
@@ -226,12 +274,49 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
           fieldname: "condition_buttons",
           options: `
             <style>
+              .warehouse-section {
+                padding: 12px 0 16px 0;
+                border-bottom: 1px solid var(--border-color);
+                margin-bottom: 12px;
+              }
+              .warehouse-label {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--text-muted);
+                margin-bottom: 8px;
+              }
+              .warehouse-toggle {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+              }
+              .warehouse-btn {
+                padding: 12px 20px;
+                font-size: 15px;
+                font-weight: 500;
+                border: 2px solid var(--border-color);
+                border-radius: 6px;
+                background: var(--bg-color);
+                color: var(--text-color);
+                cursor: pointer;
+                transition: all 0.15s ease;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
+              }
+              .warehouse-btn:hover {
+                border-color: var(--primary-color);
+              }
+              .warehouse-btn.selected {
+                background: var(--primary-color);
+                border-color: var(--primary-color);
+                color: white;
+              }
               .condition-grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
                 gap: 12px;
                 padding: 10px 0;
-                max-height: 70vh;
+                max-height: 60vh;
                 overflow-y: auto;
               }
               .condition-btn {
@@ -263,6 +348,13 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
                 color: white;
               }
               @media (max-width: 768px) {
+                .warehouse-toggle {
+                  flex-direction: column;
+                }
+                .warehouse-btn {
+                  padding: 14px 20px;
+                  font-size: 16px;
+                }
                 .condition-grid {
                   grid-template-columns: 1fr;
                 }
@@ -273,6 +365,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
                 }
               }
             </style>
+            ${warehouseSectionHtml}
             <div class="condition-grid">
               ${options
                 .map(
@@ -292,10 +385,23 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       ],
     });
 
+    // Track selected warehouse
+    let selectedWarehouse = defaultWarehouse;
+
     // Hide the default footer buttons
     dialog.$wrapper.find(".modal-footer").hide();
 
     dialog.show();
+
+    // Handle warehouse toggle clicks
+    dialog.$wrapper.find(".warehouse-btn").on("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      dialog.$wrapper.find(".warehouse-btn").removeClass("selected");
+      $(this).addClass("selected");
+      selectedWarehouse = $(this).data("warehouse");
+    });
 
     // Tap to select AND apply immediately
     dialog.$wrapper.find(".condition-btn").on("click", function (e) {
@@ -304,14 +410,19 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 
       const condition = $(this).data("condition");
 
-      // Apply immediately
+      // Store both condition and warehouse selection
       window.surgishop.pendingCondition = condition;
+      window.surgishop.pendingConditionWarehouse = selectedWarehouse;
 
-      self.show_alert(
-        `Condition "${condition}" will be applied to next scan`,
-        "green",
-        3
-      );
+      // Build message
+      let message = `Condition "${condition}" will be applied to next scan`;
+      if (selectedWarehouse === "accepted" && settings.acceptedWarehouse) {
+        message += ` → ${settings.acceptedWarehouse}`;
+      } else if (selectedWarehouse === "rejected" && settings.rejectedWarehouse) {
+        message += ` → ${settings.rejectedWarehouse}`;
+      }
+
+      self.show_alert(message, "green", 3);
       self.play_success_sound();
       dialog.hide();
     });
@@ -532,8 +643,10 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       // Check for pending condition FIRST
       // Condition scans should ALWAYS create a new row
       const pendingCondition = window.surgishop.pendingCondition;
+      const pendingConditionWarehouse = window.surgishop.pendingConditionWarehouse;
       if (pendingCondition) {
         window.surgishop.pendingCondition = null;
+        // Note: pendingConditionWarehouse is cleared in set_condition after being applied
       }
 
       // Check if we're forcing a new row (or if condition is pending)
@@ -853,31 +966,45 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       }
     }
 
-    // Apply condition warehouse behavior
+    // Apply condition warehouse - use dialog selection if available, else fall back to settings
     const settings = window.surgishop.settings;
-    const behavior = settings.conditionWarehouseBehavior;
     const warehouse_field = this.get_warehouse_field();
 
-    if (behavior && behavior !== "No Change" && warehouse_field) {
-      let targetWarehouse = null;
+    // Check for user selection from dialog first
+    const dialogWarehouse = window.surgishop.pendingConditionWarehouse;
+    let targetWarehouse = null;
 
+    if (dialogWarehouse && dialogWarehouse !== "none") {
+      // User made explicit selection in dialog
+      if (dialogWarehouse === "accepted" && settings.acceptedWarehouse) {
+        targetWarehouse = settings.acceptedWarehouse;
+      } else if (dialogWarehouse === "rejected" && settings.rejectedWarehouse) {
+        targetWarehouse = settings.rejectedWarehouse;
+      }
+    } else if (!dialogWarehouse) {
+      // No dialog selection - fall back to default behavior from settings
+      const behavior = settings.conditionWarehouseBehavior;
       if (behavior === "Use Accepted Warehouse" && settings.acceptedWarehouse) {
         targetWarehouse = settings.acceptedWarehouse;
       } else if (behavior === "Use Rejected Warehouse" && settings.rejectedWarehouse) {
         targetWarehouse = settings.rejectedWarehouse;
       }
+    }
+    // If dialogWarehouse === "none", user explicitly chose default - no warehouse override
 
-      if (targetWarehouse && frappe.meta.has_field(row.doctype, warehouse_field)) {
-        try {
-          await frappe.model.set_value(
-            row.doctype,
-            row.name,
-            warehouse_field,
-            targetWarehouse
-          );
-        } catch (e) {
-          // ERPNext internal refresh errors - safe to ignore
-        }
+    // Clear the pending warehouse selection
+    window.surgishop.pendingConditionWarehouse = null;
+
+    if (targetWarehouse && warehouse_field && frappe.meta.has_field(row.doctype, warehouse_field)) {
+      try {
+        await frappe.model.set_value(
+          row.doctype,
+          row.name,
+          warehouse_field,
+          targetWarehouse
+        );
+      } catch (e) {
+        // ERPNext internal refresh errors - safe to ignore
       }
     }
   }
@@ -1076,7 +1203,8 @@ function loadSurgiShopScannerSettings() {
           warnOnExpiryMismatch: s.warn_on_expiry_mismatch !== 0,
           updateMissingExpiry: s.update_missing_expiry !== 0,
           strictGtinValidation: s.strict_gtin_validation === 1,
-          conditionWarehouseBehavior: s.condition_warehouse_behavior || "No Change",
+          conditionWarehouseBehavior:
+            s.condition_warehouse_behavior || "No Change",
           acceptedWarehouse: s.accepted_warehouse || null,
           rejectedWarehouse: s.rejected_warehouse || null,
         };

@@ -1,304 +1,304 @@
 {
-	"actions": [],
-	"allow_rename": 0,
-	"creation": "2024-01-01 00:00:00.000000",
-	"default_view": "List",
-	"doctype": "DocType",
-	"engine": "InnoDB",
-	"field_order": [
-		"scanner_settings_section",
-		"enable_scan_sounds",
-		"prompt_for_quantity",
-		"disable_serial_batch_selector",
-		"column_break_scanner_1",
-		"default_scan_quantity",
-		"auto_create_batches",
-		"trigger_barcodes_section",
-		"new_line_trigger_barcode",
-		"condition_trigger_barcode",
-		"column_break_triggers",
-		"quantity_trigger_barcode",
-		"delete_row_trigger_barcode",
-		"generate_trigger_barcodes",
-		"condition_warehouse_section",
-		"condition_warehouse_behavior",
-		"column_break_condition_wh",
-		"accepted_warehouse",
-		"rejected_warehouse",
-		"batch_settings_section",
-		"batch_naming_format",
-		"warn_on_expiry_mismatch",
-		"update_missing_expiry",
-		"column_break_batch",
-		"strict_gtin_validation",
-		"batch_expiry_section",
-		"allow_expired_batches_on_inbound",
-		"column_break_1",
-		"skip_batch_expiry_validation",
-		"inbound_transactions_section",
-		"allow_expired_on_purchase_receipt",
-		"allow_expired_on_purchase_invoice",
-		"allow_expired_on_stock_entry_receipt",
-		"column_break_2",
-		"allow_expired_on_stock_reconciliation",
-		"allow_expired_on_sales_return"
-	],
-	"fields": [
-		{
-			"fieldname": "scanner_settings_section",
-			"fieldtype": "Section Break",
-			"label": "Scanner Settings"
-		},
-		{
-			"default": "1",
-			"description": "Play audio feedback sounds on scan success/failure",
-			"fieldname": "enable_scan_sounds",
-			"fieldtype": "Check",
-			"label": "Enable Scan Sounds"
-		},
-		{
-			"default": "0",
-			"description": "Prompt for quantity on each scan instead of auto-incrementing by default quantity",
-			"fieldname": "prompt_for_quantity",
-			"fieldtype": "Check",
-			"label": "Prompt for Quantity"
-		},
-		{
-			"default": "1",
-			"description": "Disable the Serial/Batch selector dialog popup. When enabled, batch info is auto-populated from GS1 scan without dialog.",
-			"fieldname": "disable_serial_batch_selector",
-			"fieldtype": "Check",
-			"label": "Disable Serial/Batch Selector Dialog"
-		},
-		{
-			"fieldname": "column_break_scanner_1",
-			"fieldtype": "Column Break"
-		},
-		{
-			"default": "1",
-			"description": "Quantity to add per scan (used when not prompting for quantity)",
-			"fieldname": "default_scan_quantity",
-			"fieldtype": "Int",
-			"label": "Default Scan Quantity"
-		},
-		{
-			"default": "1",
-			"description": "Automatically create batch if it doesn't exist (vs showing error)",
-			"fieldname": "auto_create_batches",
-			"fieldtype": "Check",
-			"label": "Auto-Create Batches"
-		},
-		{
-			"fieldname": "trigger_barcodes_section",
-			"fieldtype": "Section Break",
-			"label": "Trigger Barcodes",
-			"description": "Special barcodes that trigger actions on the next scan"
-		},
-		{
-			"description": "Scan this barcode to force the next item to be added on a new line instead of incrementing an existing row",
-			"fieldname": "new_line_trigger_barcode",
-			"fieldtype": "Data",
-			"label": "New Line Trigger Barcode"
-		},
-		{
-			"description": "Scan this barcode followed by a condition option to set condition for the next item scan",
-			"fieldname": "condition_trigger_barcode",
-			"fieldtype": "Data",
-			"label": "Condition Trigger Barcode"
-		},
-		{
-			"fieldname": "column_break_triggers",
-			"fieldtype": "Column Break"
-		},
-		{
-			"description": "Scan this barcode to prompt for quantity on the next item scan",
-			"fieldname": "quantity_trigger_barcode",
-			"fieldtype": "Data",
-			"label": "Quantity Trigger Barcode"
-		},
-		{
-			"description": "Scan this barcode to delete/remove the last scanned row",
-			"fieldname": "delete_row_trigger_barcode",
-			"fieldtype": "Data",
-			"label": "Delete Row Trigger Barcode"
-		},
-		{
-			"fieldname": "generate_trigger_barcodes",
-			"fieldtype": "Button",
-			"label": "Generate Printable Trigger Barcodes",
-			"description": "Generate a printable sheet with barcodes for all configured triggers"
-		},
-		{
-			"fieldname": "condition_warehouse_section",
-			"fieldtype": "Section Break",
-			"label": "Condition Warehouse Settings",
-			"description": "Configure default warehouse behavior for items scanned with a condition"
-		},
-		{
-			"default": "No Change",
-			"description": "When a condition is applied to a scanned item, automatically set the warehouse",
-			"fieldname": "condition_warehouse_behavior",
-			"fieldtype": "Select",
-			"label": "Condition Warehouse Behavior",
-			"options": "No Change\nUse Accepted Warehouse\nUse Rejected Warehouse"
-		},
-		{
-			"fieldname": "column_break_condition_wh",
-			"fieldtype": "Column Break"
-		},
-		{
-			"depends_on": "eval:doc.condition_warehouse_behavior === 'Use Accepted Warehouse'",
-			"description": "Warehouse for items with conditions that are accepted",
-			"fieldname": "accepted_warehouse",
-			"fieldtype": "Link",
-			"label": "Accepted Warehouse",
-			"options": "Warehouse"
-		},
-		{
-			"depends_on": "eval:doc.condition_warehouse_behavior === 'Use Rejected Warehouse'",
-			"description": "Warehouse for items with conditions that are rejected",
-			"fieldname": "rejected_warehouse",
-			"fieldtype": "Link",
-			"label": "Rejected Warehouse",
-			"options": "Warehouse"
-		},
-		{
-			"fieldname": "batch_settings_section",
-			"fieldtype": "Section Break",
-			"label": "Batch Settings"
-		},
-		{
-			"default": "{item}-{lot}",
-			"description": "Format for auto-created batch names. {item} = Item Code, {lot} = Lot from barcode",
-			"fieldname": "batch_naming_format",
-			"fieldtype": "Select",
-			"label": "Batch Naming Format",
-			"options": "{item}-{lot}\n{lot}"
-		},
-		{
-			"default": "1",
-			"description": "Show warning if scanned expiry date differs from existing batch expiry",
-			"fieldname": "warn_on_expiry_mismatch",
-			"fieldtype": "Check",
-			"label": "Warn on Expiry Mismatch"
-		},
-		{
-			"default": "1",
-			"description": "If existing batch has no expiry date, update it from scanned barcode",
-			"fieldname": "update_missing_expiry",
-			"fieldtype": "Check",
-			"label": "Update Missing Expiry"
-		},
-		{
-			"fieldname": "column_break_batch",
-			"fieldtype": "Column Break"
-		},
-		{
-			"default": "0",
-			"description": "Require exact GTIN match in Item Barcodes (vs allowing any barcode lookup)",
-			"fieldname": "strict_gtin_validation",
-			"fieldtype": "Check",
-			"label": "Strict GTIN Validation"
-		},
-		{
-			"fieldname": "batch_expiry_section",
-			"fieldtype": "Section Break",
-			"label": "Batch Expiry Settings"
-		},
-		{
-			"default": "1",
-			"description": "When enabled, expired batches can be received into the system through inbound transactions (Purchase Receipt, Stock Entry - Material Receipt, etc.)",
-			"fieldname": "allow_expired_batches_on_inbound",
-			"fieldtype": "Check",
-			"label": "Allow Expired Batches on Inbound Transactions"
-		},
-		{
-			"fieldname": "column_break_1",
-			"fieldtype": "Column Break"
-		},
-		{
-			"default": "0",
-			"description": "WARNING: When enabled, batch expiry validation is completely skipped for ALL transactions. Use with caution!",
-			"fieldname": "skip_batch_expiry_validation",
-			"fieldtype": "Check",
-			"label": "Skip All Batch Expiry Validation"
-		},
-		{
-			"collapsible": 1,
-			"collapsible_depends_on": "allow_expired_batches_on_inbound",
-			"depends_on": "allow_expired_batches_on_inbound",
-			"fieldname": "inbound_transactions_section",
-			"fieldtype": "Section Break",
-			"label": "Inbound Transaction Settings"
-		},
-		{
-			"default": "1",
-			"description": "Allow expired batches on Purchase Receipt documents",
-			"fieldname": "allow_expired_on_purchase_receipt",
-			"fieldtype": "Check",
-			"label": "Purchase Receipt"
-		},
-		{
-			"default": "1",
-			"description": "Allow expired batches on Purchase Invoice documents",
-			"fieldname": "allow_expired_on_purchase_invoice",
-			"fieldtype": "Check",
-			"label": "Purchase Invoice"
-		},
-		{
-			"default": "1",
-			"description": "Allow expired batches on Stock Entry with Material Receipt purpose",
-			"fieldname": "allow_expired_on_stock_entry_receipt",
-			"fieldtype": "Check",
-			"label": "Stock Entry (Material Receipt)"
-		},
-		{
-			"fieldname": "column_break_2",
-			"fieldtype": "Column Break"
-		},
-		{
-			"default": "1",
-			"description": "Allow expired batches on Stock Reconciliation documents",
-			"fieldname": "allow_expired_on_stock_reconciliation",
-			"fieldtype": "Check",
-			"label": "Stock Reconciliation"
-		},
-		{
-			"default": "1",
-			"description": "Allow expired batches on Sales Returns (Sales Invoice / Delivery Note with is_return=True)",
-			"fieldname": "allow_expired_on_sales_return",
-			"fieldtype": "Check",
-			"label": "Sales Returns"
-		}
-	],
-	"index_web_pages_for_search": 0,
-	"issingle": 1,
-	"links": [],
-	"modified": "2025-12-16 10:00:00.000000",
-	"modified_by": "Administrator",
-	"module": "SurgiShop ERP Scanner",
-	"name": "SurgiShop Settings",
-	"naming_rule": "Expression (old style)",
-	"owner": "Administrator",
-	"permissions": [
-		{
-			"create": 1,
-			"delete": 1,
-			"email": 1,
-			"print": 1,
-			"read": 1,
-			"role": "System Manager",
-			"share": 1,
-			"write": 1
-		},
-		{
-			"read": 1,
-			"role": "Stock Manager",
-			"write": 1
-		}
-	],
-	"sort_field": "creation",
-	"sort_order": "DESC",
-	"states": [],
-	"track_changes": 1
+  "actions": [],
+  "allow_rename": 0,
+  "creation": "2024-01-01 00:00:00.000000",
+  "default_view": "List",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "scanner_settings_section",
+    "enable_scan_sounds",
+    "prompt_for_quantity",
+    "disable_serial_batch_selector",
+    "column_break_scanner_1",
+    "default_scan_quantity",
+    "auto_create_batches",
+    "trigger_barcodes_section",
+    "new_line_trigger_barcode",
+    "condition_trigger_barcode",
+    "column_break_triggers",
+    "quantity_trigger_barcode",
+    "delete_row_trigger_barcode",
+    "generate_trigger_barcodes",
+    "condition_warehouse_section",
+    "condition_warehouse_behavior",
+    "column_break_condition_wh",
+    "accepted_warehouse",
+    "rejected_warehouse",
+    "batch_settings_section",
+    "batch_naming_format",
+    "warn_on_expiry_mismatch",
+    "update_missing_expiry",
+    "column_break_batch",
+    "strict_gtin_validation",
+    "batch_expiry_section",
+    "allow_expired_batches_on_inbound",
+    "column_break_1",
+    "skip_batch_expiry_validation",
+    "inbound_transactions_section",
+    "allow_expired_on_purchase_receipt",
+    "allow_expired_on_purchase_invoice",
+    "allow_expired_on_stock_entry_receipt",
+    "column_break_2",
+    "allow_expired_on_stock_reconciliation",
+    "allow_expired_on_sales_return"
+  ],
+  "fields": [
+    {
+      "fieldname": "scanner_settings_section",
+      "fieldtype": "Section Break",
+      "label": "Scanner Settings"
+    },
+    {
+      "default": "1",
+      "description": "Play audio feedback sounds on scan success/failure",
+      "fieldname": "enable_scan_sounds",
+      "fieldtype": "Check",
+      "label": "Enable Scan Sounds"
+    },
+    {
+      "default": "0",
+      "description": "Prompt for quantity on each scan instead of auto-incrementing by default quantity",
+      "fieldname": "prompt_for_quantity",
+      "fieldtype": "Check",
+      "label": "Prompt for Quantity"
+    },
+    {
+      "default": "1",
+      "description": "Disable the Serial/Batch selector dialog popup. When enabled, batch info is auto-populated from GS1 scan without dialog.",
+      "fieldname": "disable_serial_batch_selector",
+      "fieldtype": "Check",
+      "label": "Disable Serial/Batch Selector Dialog"
+    },
+    {
+      "fieldname": "column_break_scanner_1",
+      "fieldtype": "Column Break"
+    },
+    {
+      "default": "1",
+      "description": "Quantity to add per scan (used when not prompting for quantity)",
+      "fieldname": "default_scan_quantity",
+      "fieldtype": "Int",
+      "label": "Default Scan Quantity"
+    },
+    {
+      "default": "1",
+      "description": "Automatically create batch if it doesn't exist (vs showing error)",
+      "fieldname": "auto_create_batches",
+      "fieldtype": "Check",
+      "label": "Auto-Create Batches"
+    },
+    {
+      "fieldname": "trigger_barcodes_section",
+      "fieldtype": "Section Break",
+      "label": "Trigger Barcodes",
+      "description": "Special barcodes that trigger actions on the next scan"
+    },
+    {
+      "description": "Scan this barcode to force the next item to be added on a new line instead of incrementing an existing row",
+      "fieldname": "new_line_trigger_barcode",
+      "fieldtype": "Data",
+      "label": "New Line Trigger Barcode"
+    },
+    {
+      "description": "Scan this barcode followed by a condition option to set condition for the next item scan",
+      "fieldname": "condition_trigger_barcode",
+      "fieldtype": "Data",
+      "label": "Condition Trigger Barcode"
+    },
+    {
+      "fieldname": "column_break_triggers",
+      "fieldtype": "Column Break"
+    },
+    {
+      "description": "Scan this barcode to prompt for quantity on the next item scan",
+      "fieldname": "quantity_trigger_barcode",
+      "fieldtype": "Data",
+      "label": "Quantity Trigger Barcode"
+    },
+    {
+      "description": "Scan this barcode to delete/remove the last scanned row",
+      "fieldname": "delete_row_trigger_barcode",
+      "fieldtype": "Data",
+      "label": "Delete Row Trigger Barcode"
+    },
+    {
+      "fieldname": "generate_trigger_barcodes",
+      "fieldtype": "Button",
+      "label": "Generate Printable Trigger Barcodes",
+      "description": "Generate a printable sheet with barcodes for all configured triggers"
+    },
+    {
+      "fieldname": "condition_warehouse_section",
+      "fieldtype": "Section Break",
+      "label": "Condition Warehouse Settings",
+      "description": "Configure default warehouse behavior for items scanned with a condition"
+    },
+    {
+      "default": "No Change",
+      "description": "When a condition is applied to a scanned item, automatically set the warehouse",
+      "fieldname": "condition_warehouse_behavior",
+      "fieldtype": "Select",
+      "label": "Condition Warehouse Behavior",
+      "options": "No Change\nUse Accepted Warehouse\nUse Rejected Warehouse"
+    },
+    {
+      "fieldname": "column_break_condition_wh",
+      "fieldtype": "Column Break"
+    },
+    {
+      "depends_on": "eval:doc.condition_warehouse_behavior === 'Use Accepted Warehouse'",
+      "description": "Warehouse for items with conditions that are accepted",
+      "fieldname": "accepted_warehouse",
+      "fieldtype": "Link",
+      "label": "Accepted Warehouse",
+      "options": "Warehouse"
+    },
+    {
+      "depends_on": "eval:doc.condition_warehouse_behavior === 'Use Rejected Warehouse'",
+      "description": "Warehouse for items with conditions that are rejected",
+      "fieldname": "rejected_warehouse",
+      "fieldtype": "Link",
+      "label": "Rejected Warehouse",
+      "options": "Warehouse"
+    },
+    {
+      "fieldname": "batch_settings_section",
+      "fieldtype": "Section Break",
+      "label": "Batch Settings"
+    },
+    {
+      "default": "{item}-{lot}",
+      "description": "Format for auto-created batch names. {item} = Item Code, {lot} = Lot from barcode",
+      "fieldname": "batch_naming_format",
+      "fieldtype": "Select",
+      "label": "Batch Naming Format",
+      "options": "{item}-{lot}\n{lot}"
+    },
+    {
+      "default": "1",
+      "description": "Show warning if scanned expiry date differs from existing batch expiry",
+      "fieldname": "warn_on_expiry_mismatch",
+      "fieldtype": "Check",
+      "label": "Warn on Expiry Mismatch"
+    },
+    {
+      "default": "1",
+      "description": "If existing batch has no expiry date, update it from scanned barcode",
+      "fieldname": "update_missing_expiry",
+      "fieldtype": "Check",
+      "label": "Update Missing Expiry"
+    },
+    {
+      "fieldname": "column_break_batch",
+      "fieldtype": "Column Break"
+    },
+    {
+      "default": "0",
+      "description": "Require exact GTIN match in Item Barcodes (vs allowing any barcode lookup)",
+      "fieldname": "strict_gtin_validation",
+      "fieldtype": "Check",
+      "label": "Strict GTIN Validation"
+    },
+    {
+      "fieldname": "batch_expiry_section",
+      "fieldtype": "Section Break",
+      "label": "Batch Expiry Settings"
+    },
+    {
+      "default": "1",
+      "description": "When enabled, expired batches can be received into the system through inbound transactions (Purchase Receipt, Stock Entry - Material Receipt, etc.)",
+      "fieldname": "allow_expired_batches_on_inbound",
+      "fieldtype": "Check",
+      "label": "Allow Expired Batches on Inbound Transactions"
+    },
+    {
+      "fieldname": "column_break_1",
+      "fieldtype": "Column Break"
+    },
+    {
+      "default": "0",
+      "description": "WARNING: When enabled, batch expiry validation is completely skipped for ALL transactions. Use with caution!",
+      "fieldname": "skip_batch_expiry_validation",
+      "fieldtype": "Check",
+      "label": "Skip All Batch Expiry Validation"
+    },
+    {
+      "collapsible": 1,
+      "collapsible_depends_on": "allow_expired_batches_on_inbound",
+      "depends_on": "allow_expired_batches_on_inbound",
+      "fieldname": "inbound_transactions_section",
+      "fieldtype": "Section Break",
+      "label": "Inbound Transaction Settings"
+    },
+    {
+      "default": "1",
+      "description": "Allow expired batches on Purchase Receipt documents",
+      "fieldname": "allow_expired_on_purchase_receipt",
+      "fieldtype": "Check",
+      "label": "Purchase Receipt"
+    },
+    {
+      "default": "1",
+      "description": "Allow expired batches on Purchase Invoice documents",
+      "fieldname": "allow_expired_on_purchase_invoice",
+      "fieldtype": "Check",
+      "label": "Purchase Invoice"
+    },
+    {
+      "default": "1",
+      "description": "Allow expired batches on Stock Entry with Material Receipt purpose",
+      "fieldname": "allow_expired_on_stock_entry_receipt",
+      "fieldtype": "Check",
+      "label": "Stock Entry (Material Receipt)"
+    },
+    {
+      "fieldname": "column_break_2",
+      "fieldtype": "Column Break"
+    },
+    {
+      "default": "1",
+      "description": "Allow expired batches on Stock Reconciliation documents",
+      "fieldname": "allow_expired_on_stock_reconciliation",
+      "fieldtype": "Check",
+      "label": "Stock Reconciliation"
+    },
+    {
+      "default": "1",
+      "description": "Allow expired batches on Sales Returns (Sales Invoice / Delivery Note with is_return=True)",
+      "fieldname": "allow_expired_on_sales_return",
+      "fieldtype": "Check",
+      "label": "Sales Returns"
+    }
+  ],
+  "index_web_pages_for_search": 0,
+  "issingle": 1,
+  "links": [],
+  "modified": "2025-12-16 10:00:00.000000",
+  "modified_by": "Administrator",
+  "module": "SurgiShop ERP Scanner",
+  "name": "SurgiShop Settings",
+  "naming_rule": "Expression (old style)",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "print": 1,
+      "read": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    },
+    {
+      "read": 1,
+      "role": "Stock Manager",
+      "write": 1
+    }
+  ],
+  "sort_field": "creation",
+  "sort_order": "DESC",
+  "states": [],
+  "track_changes": 1
 }
