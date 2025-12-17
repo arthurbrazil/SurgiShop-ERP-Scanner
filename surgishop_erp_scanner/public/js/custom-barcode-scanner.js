@@ -732,7 +732,12 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   async set_barcode_uom(row, uom) {
     if (uom && frappe.meta.has_field(row.doctype, this.uom_field)) {
       try {
-        await frappe.model.set_value(row.doctype, row.name, this.uom_field, uom);
+        await frappe.model.set_value(
+          row.doctype,
+          row.name,
+          this.uom_field,
+          uom
+        );
       } catch (e) {
         // ERPNext internal refresh errors - safe to ignore
       }
