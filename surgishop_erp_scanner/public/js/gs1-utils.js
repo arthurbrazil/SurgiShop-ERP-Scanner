@@ -45,13 +45,8 @@ surgishop.GS1Parser = class GS1Parser {
    * @returns {object|null} Parsed data with extracted AIs or null if parsing fails
    */
   static parse(gs1_string) {
-    console.log(
-      `🏥 GS1 Parse Start: Input="${gs1_string}", Length=${gs1_string.length}`
-    );
-
     // Validate input
     if (!gs1_string || typeof gs1_string !== "string") {
-      console.log("🏥 GS1 Parse Failed: Invalid input (null or not a string)");
       return null;
     }
 
@@ -83,12 +78,6 @@ surgishop.GS1Parser = class GS1Parser {
       }
 
       if (!ai) {
-        console.log(
-          `🏥 GS1 Parse Failed: Unknown AI at position ${pos}, found "${gs1_string.substr(
-            pos,
-            3
-          )}"`
-        );
         return null;
       }
 
@@ -100,49 +89,26 @@ surgishop.GS1Parser = class GS1Parser {
 
       if (aiDef.length === "variable") {
         // Variable length: read until end of string or until next AI
-        // For variable fields, we need to look ahead for the next AI
         let endPos = pos;
         let foundNextAI = false;
 
         // Scan ahead looking for the next AI
         for (let i = pos; i < gs1_string.length; i++) {
-          // Check if we've hit a potential AI (2 or 3 digits)
-          // But be more careful - only consider it an AI if it's at a reasonable position
-          // and not obviously part of the current field
           if (i > pos) {
             const potentialAI2 = gs1_string.substr(i, 2);
             const potentialAI3 = gs1_string.substr(i, 3);
-
-            // For variable-length fields, check for the next AI
-            // Priority: 3-digit AIs > 2-digit AIs
-            // For 2-digit AIs, we need some minimum distance to avoid false positives
-            const isAtMinDistance = i - pos >= 1; // At least 1 character into the field
-            const prevChar = i > 0 ? gs1_string[i - 1] : "";
-
-            console.log(
-              `🏥 Debug AI Detection: pos=${pos}, i=${i}, potentialAI2="${potentialAI2}", potentialAI3="${potentialAI3}", isAtMinDistance=${isAtMinDistance}, prevChar="${prevChar}"`
-            );
+            const isAtMinDistance = i - pos >= 1;
 
             // Check if this is a valid AI
-            // 3-digit AIs take priority, then 2-digit AIs
-            // BUT NEVER detect "01" (GTIN) within variable-length fields since it's always the first AI
             if (surgishop.GS1_AI_DEFINITIONS[potentialAI3]) {
-              // Found a 3-digit AI
-              console.log(
-                `🏥 Debug: Found 3-digit AI "${potentialAI3}" at position ${i}, ending field at ${i}`
-              );
               endPos = i;
               foundNextAI = true;
               break;
             } else if (
               surgishop.GS1_AI_DEFINITIONS[potentialAI2] &&
-              potentialAI2 !== "01" && // NEVER detect "01" within variable fields
-              isAtMinDistance // Must be at least 1 char into the field
+              potentialAI2 !== "01" &&
+              isAtMinDistance
             ) {
-              // Found a 2-digit AI
-              console.log(
-                `🏥 Debug: Found 2-digit AI "${potentialAI2}" at position ${i}, ending field at ${i}`
-              );
               endPos = i;
               foundNextAI = true;
               break;
@@ -167,42 +133,20 @@ surgishop.GS1Parser = class GS1Parser {
         // Fixed length: read exactly the specified number of characters
         const length = parseInt(aiDef.length);
         if (pos + length > gs1_string.length) {
-          console.log(
-            `🏥 GS1 Parse Failed: Not enough characters for AI ${ai} (need ${length}, have ${
-              gs1_string.length - pos
-            })`
-          );
           return null;
         }
         data = gs1_string.substr(pos, length);
         pos += length;
       }
 
-      // Validate data type - but be more tolerant for non-standard formats
-      if (aiDef.type === "numeric" && !data.match(/^\d+$/)) {
-        console.log(
-          `🏥 GS1 Parse Warning: AI ${ai} (${aiDef.name}) should be numeric, got "${data}" - continuing anyway`
-        );
-        // Don't return null, just log a warning and continue
-        // This handles non-standard barcodes that might have custom data
-      }
-
       // Store the parsed value using the AI name
       result[aiDef.name.toLowerCase()] = data;
-
-      console.log(`🏥 GS1 Parsed AI ${ai} (${aiDef.name}): "${data}"`);
     }
 
     // For backward compatibility, add aliases
     if (result.gtin) result.gtin = result.gtin;
     if (result.expiry) result.expiry = result.expiry;
     if (result.lot) result.lot = result.lot;
-
-    console.log(
-      `%c🏥 GS1 Parse Success:`,
-      "color: #4CAF50; font-weight: bold;",
-      result
-    );
 
     return result;
   }
@@ -214,9 +158,8 @@ surgishop.GS1Parser = class GS1Parser {
    */
   static isGS1(input) {
     if (!input || typeof input !== "string") return false;
-    if (input.length < 4) return false; // Minimum: AI (2) + data (2)
+    if (input.length < 4) return false;
 
-    // Check if it starts with a known AI
     const twoDigitAI = input.substr(0, 2);
     const threeDigitAI = input.substr(0, 3);
 
@@ -236,7 +179,6 @@ surgishop.GS1Parser = class GS1Parser {
 
     let formatted = "";
 
-    // Add AIs in standard order
     if (parsed.gtin) formatted += `(01)${parsed.gtin}`;
     if (parsed.expiry) formatted += `(17)${parsed.expiry}`;
     if (parsed.best_before) formatted += `(15)${parsed.best_before}`;
@@ -258,7 +200,6 @@ surgishop.GS1Parser = class GS1Parser {
 
     let raw = "";
 
-    // Add AIs in standard order (without parentheses)
     if (parsed.gtin) raw += `01${parsed.gtin}`;
     if (parsed.expiry) raw += `17${parsed.expiry}`;
     if (parsed.best_before) raw += `15${parsed.best_before}`;
