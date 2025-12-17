@@ -1,7 +1,5 @@
 // SurgiShop ERP Scanner - Custom Serial Batch Selector
 
-console.log("🏥 Custom Serial Batch Selector loaded")
-
 // Patch Original Constructor
 if (erpnext.SerialBatchPackageSelector) {
   // Patch constructor
@@ -12,7 +10,6 @@ if (erpnext.SerialBatchPackageSelector) {
       this.qty = opts.item.qty
     } else {
       this.qty = 0
-      console.log("🏥 Patched: No item - set qty to 0")
     }
     originalConstructor.apply(this, arguments)
   }
@@ -22,12 +19,9 @@ if (erpnext.SerialBatchPackageSelector) {
   erpnext.SerialBatchPackageSelector.prototype.make = function () {
     originalMake.call(this)
 
-    console.log("🏥 Dialog box opened!")
-
     if (this.item && this.item.item_code) {
       const newTitle = `${this.dialog.title} - Item: ${this.item.item_code}`
       this.dialog.set_title(newTitle)
-      console.log("🏥 Updated title to:", newTitle)
     }
 
     // Add custom onchange to scan_batch_no
@@ -134,7 +128,6 @@ if (erpnext.SerialBatchPackageSelector) {
                 if (existingRow) {
                   // Increment quantity if batch already exists
                   existingRow.qty = (existingRow.qty || 0) + 1
-                  console.log(`🏥 Incremented quantity for batch ${batch} to ${existingRow.qty}`)
                   frappe.show_alert({
                     message: __(`Batch ${batch}: Qty increased to ${existingRow.qty}`),
                     indicator: 'green'
@@ -150,7 +143,6 @@ if (erpnext.SerialBatchPackageSelector) {
                   // Add the new row to the data
                   gridData.push(newRow)
 
-                  console.log("🏥 Successfully added new batch row:", newRow)
                   frappe.show_alert({
                     message: __(`Batch ${batch} added with qty 1`),
                     indicator: 'green'
@@ -163,8 +155,6 @@ if (erpnext.SerialBatchPackageSelector) {
                 }
 
                 grid.refresh()
-
-                console.log("🏥 Current grid data:", gridData)
 
                 scanField.set_value("")
                 frappe.utils.play_sound("submit") // Play success sound
@@ -182,10 +172,7 @@ if (erpnext.SerialBatchPackageSelector) {
       }
     }
 
-    console.log("🏥 Added custom GS1 scan handler to scan_batch_no")
   }
-
-  console.log("🏥 Patches applied successfully")
 }
 
 // Patch get_dialog_table_fields to add expiry_date column in correct order
@@ -243,15 +230,7 @@ erpnext.SerialBatchPackageSelector.prototype.set_data = function (data) {
   })
 }
 
-console.log(
-  "🏥 Added expiry date column with order, auto-fetch on change, and initial data handling"
-)
-
-console.log("🏥 Proxy wrapper applied - error-proof!")
-
 // Safe DOM Modification for Dialog Title
-
-console.log("🏥 Safe Dialog Modifier Loaded")
 
 // Global storage for item code from clicked row
 let currentItemCode = ""
@@ -269,7 +248,6 @@ $(document).on(
           .find('[data-fieldname="item_code"] .grid-static-col')
           .text()
           .trim() || ""
-      console.log("🏥 Button clicked - Stored item code:", currentItemCode)
     }
   }
 )
@@ -286,10 +264,6 @@ const observer = new MutationObserver((mutations) => {
           currentItemCode
         ) {
           titleElem.textContent += ` - Item: ${currentItemCode}`
-          console.log(
-            "🏥 Dialog opened and title updated to:",
-            titleElem.textContent
-          )
           currentItemCode = "" // Reset
         }
       }
@@ -297,6 +271,4 @@ const observer = new MutationObserver((mutations) => {
   })
 })
 observer.observe(document.body, { childList: true, subtree: true })
-
-console.log("🏥 Observer setup complete - waiting for dialog")
 

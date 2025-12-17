@@ -4,11 +4,6 @@
  * Supports alphanumeric lot numbers and variable-length fields
  */
 
-console.log(
-  "%c🏥 SurgiShop ERP Scanner: GS1 Utils loaded (bark.js style).",
-  "color: #1E88E5; font-weight: bold;"
-)
-
 // Namespace for GS1 utilities
 if (typeof window.surgishop === "undefined") {
   window.surgishop = {}

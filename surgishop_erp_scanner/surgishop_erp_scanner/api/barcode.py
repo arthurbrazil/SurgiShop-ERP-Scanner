@@ -169,3 +169,23 @@ def validate_barcode(barcode: str) -> bool:
 
 	return bool(exists)
 
+
+@frappe.whitelist()
+def get_condition_options() -> list:
+	"""
+	Get condition options from SurgiShop Condition Settings.
+	This endpoint bypasses direct DocType permission checks.
+	"""
+	try:
+		doc = frappe.get_cached_doc("SurgiShop Condition Settings")
+		options = []
+		for row in (doc.conditions or []):
+			condition = (row.get("condition") or "").strip()
+			if condition:
+				options.append(condition)
+		return options
+	except frappe.DoesNotExistError:
+		return []
+	except Exception:
+		return []
+

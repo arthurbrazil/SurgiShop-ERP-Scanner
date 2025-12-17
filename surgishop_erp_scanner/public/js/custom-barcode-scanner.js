@@ -3,11 +3,6 @@
  * Overrides ERPNext's default barcode scanning with custom functionality
  */
 
-console.log(
-  `%c🏥 SurgiShop ERP Scanner: Global JS file loaded.`,
-  "color: #1E88E5; font-weight: bold;"
-);
-
 // Namespace for our custom code to avoid polluting the global scope
 if (typeof window.surgishop === "undefined") {
   window.surgishop = {};
@@ -40,7 +35,6 @@ window.surgishop.settings = {
  */
 surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   constructor(opts) {
-    console.log("🏥 SurgiShop ERP Scanner: Custom BarcodeScanner created");
     this.frm = opts.frm;
     this.scan_field_name = opts.scan_field_name || "scan_barcode";
     this.scan_barcode_field = this.frm.fields_dict[this.scan_field_name];
@@ -174,26 +168,12 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
    * Prompt for condition selection with touch-friendly dialog
    */
   prompt_for_condition() {
-    console.log("🏥 SurgiShop ERP Scanner: Opening condition selector dialog...");
-
-    // Fetch condition options from SurgiShop Condition Settings
+    // Fetch condition options via custom API (bypasses permission issues)
     frappe.call({
-      method: "frappe.client.get_list",
-      args: {
-        doctype: "SurgiShop Condition Option",
-        fields: ["condition"],
-        order_by: "idx asc",
-        limit_page_length: 0,
-      },
+      method:
+        "surgishop_erp_scanner.surgishop_erp_scanner.api.barcode.get_condition_options",
       callback: (r) => {
-        console.log("🏥 SurgiShop ERP Scanner: Condition options response:", r);
-
-        let options = [];
-        if (r && r.message) {
-          options = r.message.map((d) => d.condition).filter((o) => o);
-        }
-
-        console.log("🏥 SurgiShop ERP Scanner: Parsed options:", options);
+        let options = r && r.message ? r.message : [];
 
         if (options.length === 0) {
           this.show_alert(
@@ -207,13 +187,8 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
 
         this.show_touch_condition_dialog(options);
       },
-      error: (err) => {
-        console.error("🏥 SurgiShop ERP Scanner: Failed to fetch condition options:", err);
-        this.show_alert(
-          "Failed to load condition options. Check console for details.",
-          "red",
-          5
-        );
+      error: () => {
+        this.show_alert("Failed to load condition options.", "red", 5);
         this.play_fail_sound();
       },
     });
@@ -224,7 +199,6 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
    * @param {Array} options - List of condition options
    */
   show_touch_condition_dialog(options) {
-    console.log("🏥 SurgiShop ERP Scanner: Creating touch condition dialog with", options.length, "options");
     const self = this;
 
     // Create custom dialog with large touch-friendly buttons
