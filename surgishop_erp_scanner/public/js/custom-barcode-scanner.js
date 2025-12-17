@@ -6,17 +6,17 @@
 console.log(
   `%c🏥 SurgiShop ERP Scanner: Global JS file loaded.`,
   "color: #1E88E5; font-weight: bold;"
-)
+);
 
 // Namespace for our custom code to avoid polluting the global scope
 if (typeof window.surgishop === "undefined") {
-  window.surgishop = {}
+  window.surgishop = {};
 }
 
 // Scanner state flags
-window.surgishop.forceNewRow = false
-window.surgishop.forcePromptQty = false
-window.surgishop.pendingCondition = null
+window.surgishop.forceNewRow = false;
+window.surgishop.forcePromptQty = false;
+window.surgishop.pendingCondition = null;
 
 // Settings (will be loaded from SurgiShop Settings)
 window.surgishop.settings = {
@@ -32,7 +32,7 @@ window.surgishop.settings = {
   warnOnExpiryMismatch: true,
   updateMissingExpiry: true,
   strictGtinValidation: false,
-}
+};
 
 /**
  * Our custom scanner class.
@@ -40,42 +40,42 @@ window.surgishop.settings = {
  */
 surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   constructor(opts) {
-    console.log("🏥 SurgiShop ERP Scanner: Custom BarcodeScanner created")
-    this.frm = opts.frm
-    this.scan_field_name = opts.scan_field_name || "scan_barcode"
-    this.scan_barcode_field = this.frm.fields_dict[this.scan_field_name]
-    this.barcode_field = opts.barcode_field || "barcode"
-    this.serial_no_field = opts.serial_no_field || "serial_no"
-    this.batch_no_field = opts.batch_no_field || "batch_no"
+    console.log("🏥 SurgiShop ERP Scanner: Custom BarcodeScanner created");
+    this.frm = opts.frm;
+    this.scan_field_name = opts.scan_field_name || "scan_barcode";
+    this.scan_barcode_field = this.frm.fields_dict[this.scan_field_name];
+    this.barcode_field = opts.barcode_field || "barcode";
+    this.serial_no_field = opts.serial_no_field || "serial_no";
+    this.batch_no_field = opts.batch_no_field || "batch_no";
     this.batch_expiry_date_field =
-      opts.batch_expiry_date_field || "custom_expiration_date"
-    this.uom_field = opts.uom_field || "uom"
-    this.qty_field = opts.qty_field || "qty"
-    this.warehouse_field = opts.warehouse_field || "warehouse"
-    this.condition_field = opts.condition_field || "custom_condition"
-    this.max_qty_field = opts.max_qty_field
-    this.dont_allow_new_row = opts.dont_allow_new_row
-    this.items_table_name = opts.items_table_name || "items"
+      opts.batch_expiry_date_field || "custom_expiration_date";
+    this.uom_field = opts.uom_field || "uom";
+    this.qty_field = opts.qty_field || "qty";
+    this.warehouse_field = opts.warehouse_field || "warehouse";
+    this.condition_field = opts.condition_field || "custom_condition";
+    this.max_qty_field = opts.max_qty_field;
+    this.dont_allow_new_row = opts.dont_allow_new_row;
+    this.items_table_name = opts.items_table_name || "items";
 
     // Use settings for sounds
-    const settings = window.surgishop.settings
-    this.enable_sounds = settings.enableScanSounds
-    this.success_sound = this.enable_sounds ? "submit" : null
-    this.fail_sound = this.enable_sounds ? "error" : null
+    const settings = window.surgishop.settings;
+    this.enable_sounds = settings.enableScanSounds;
+    this.success_sound = this.enable_sounds ? "submit" : null;
+    this.fail_sound = this.enable_sounds ? "error" : null;
 
     // Use settings for quantity behavior
-    this.prompt_qty = opts.prompt_qty || settings.promptForQuantity
-    this.default_qty = settings.defaultScanQuantity || 1
+    this.prompt_qty = opts.prompt_qty || settings.promptForQuantity;
+    this.default_qty = settings.defaultScanQuantity || 1;
 
     this.scan_api =
       opts.scan_api ||
-      "surgishop_erp_scanner.surgishop_erp_scanner.api.barcode.scan_barcode"
+      "surgishop_erp_scanner.surgishop_erp_scanner.api.barcode.scan_barcode";
     this.gs1_parser_api =
-      "surgishop_erp_scanner.surgishop_erp_scanner.api.gs1_parser.parse_gs1_and_get_batch"
+      "surgishop_erp_scanner.surgishop_erp_scanner.api.gs1_parser.parse_gs1_and_get_batch";
     this.has_last_scanned_warehouse = frappe.meta.has_field(
       this.frm.doctype,
       "last_scanned_warehouse"
-    )
+    );
   }
 
   /**
@@ -86,12 +86,12 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   parse_gs1_string(gs1_string) {
     // Use the shared GS1Parser utility
     if (window.surgishop && window.surgishop.GS1Parser) {
-      return window.surgishop.GS1Parser.parse(gs1_string)
+      return window.surgishop.GS1Parser.parse(gs1_string);
     } else {
       console.error(
         "🏥 GS1Parser not loaded! Make sure gs1-utils.js is included."
-      )
-      return null
+      );
+      return null;
     }
   }
 
@@ -101,240 +101,369 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
    * @returns {boolean} True if this is a trigger barcode that was handled
    */
   check_trigger_barcode(input) {
-    const settings = window.surgishop.settings
+    const settings = window.surgishop.settings;
 
     // New Line Trigger
-    if (settings.newLineTriggerBarcode && input === settings.newLineTriggerBarcode) {
+    if (
+      settings.newLineTriggerBarcode &&
+      input === settings.newLineTriggerBarcode
+    ) {
       console.log(
         `%c🏥 NEW LINE TRIGGER scanned! Next item will be added on a new row.`,
         "color: #FF9800; font-weight: bold;"
-      )
-      window.surgishop.forceNewRow = true
-      this.show_alert("New Line Mode: Next scan will create a new row", "orange", 3)
-      this.play_success_sound()
-      return true
+      );
+      window.surgishop.forceNewRow = true;
+      this.show_alert(
+        "New Line Mode: Next scan will create a new row",
+        "orange",
+        3
+      );
+      this.play_success_sound();
+      return true;
     }
 
     // Condition Trigger
-    if (settings.conditionTriggerBarcode && input === settings.conditionTriggerBarcode) {
+    if (
+      settings.conditionTriggerBarcode &&
+      input === settings.conditionTriggerBarcode
+    ) {
       console.log(
         `%c🏥 CONDITION TRIGGER scanned! Enter condition for next item.`,
         "color: #9C27B0; font-weight: bold;"
-      )
-      this.prompt_for_condition()
-      return true
+      );
+      this.prompt_for_condition();
+      return true;
     }
 
     // Quantity Trigger
-    if (settings.quantityTriggerBarcode && input === settings.quantityTriggerBarcode) {
+    if (
+      settings.quantityTriggerBarcode &&
+      input === settings.quantityTriggerBarcode
+    ) {
       console.log(
         `%c🏥 QUANTITY TRIGGER scanned! Next scan will prompt for quantity.`,
         "color: #2196F3; font-weight: bold;"
-      )
-      window.surgishop.forcePromptQty = true
-      this.show_alert("Quantity Mode: Next scan will prompt for quantity", "blue", 3)
-      this.play_success_sound()
-      return true
+      );
+      window.surgishop.forcePromptQty = true;
+      this.show_alert(
+        "Quantity Mode: Next scan will prompt for quantity",
+        "blue",
+        3
+      );
+      this.play_success_sound();
+      return true;
     }
 
     // Delete Row Trigger
-    if (settings.deleteRowTriggerBarcode && input === settings.deleteRowTriggerBarcode) {
+    if (
+      settings.deleteRowTriggerBarcode &&
+      input === settings.deleteRowTriggerBarcode
+    ) {
       console.log(
         `%c🏥 DELETE ROW TRIGGER scanned! Removing last row.`,
         "color: #F44336; font-weight: bold;"
-      )
-      this.delete_last_row()
-      return true
+      );
+      this.delete_last_row();
+      return true;
     }
 
-    return false
+    return false;
   }
 
   /**
-   * Prompt for condition selection
+   * Prompt for condition selection with touch-friendly dialog
    */
   prompt_for_condition() {
-    // Get condition options from the field
-    const conditionField = frappe.meta.get_docfield(
-      this.frm.doctype + " Item",
-      this.condition_field
-    ) || frappe.meta.get_docfield(
-      "Purchase Receipt Item",
-      this.condition_field
-    )
-
-    let options = []
-    if (conditionField && conditionField.options) {
-      options = conditionField.options.split("\n").filter(o => o.trim())
-    }
-
-    if (options.length === 0) {
-      this.show_alert("No condition options configured", "orange")
-      return
-    }
-
-    frappe.prompt(
-      {
-        fieldtype: "Select",
-        label: "Select Condition for Next Scan",
-        fieldname: "condition",
-        options: options,
-        reqd: 1,
+    // Fetch condition options from SurgiShop Condition Settings
+    frappe.call({
+      method: "frappe.client.get_list",
+      args: {
+        doctype: "SurgiShop Condition Option",
+        fields: ["condition"],
+        order_by: "idx asc",
+        limit_page_length: 0,
       },
-      (values) => {
-        window.surgishop.pendingCondition = values.condition
-        this.show_alert(`Condition "${values.condition}" will be applied to next scan`, "green", 3)
-        this.play_success_sound()
+      callback: (r) => {
+        let options = [];
+        if (r && r.message) {
+          options = r.message.map((d) => d.condition).filter((o) => o);
+        }
+
+        if (options.length === 0) {
+          this.show_alert(
+            "No condition options configured. Please add options in SurgiShop Condition Settings.",
+            "orange",
+            5
+          );
+          return;
+        }
+
+        this.show_touch_condition_dialog(options);
       },
-      "Set Condition",
-      "Apply"
-    )
+    });
+  }
+
+  /**
+   * Show touch-friendly condition dialog (tap to select and apply)
+   * @param {Array} options - List of condition options
+   */
+  show_touch_condition_dialog(options) {
+    const self = this;
+
+    // Create custom dialog with large touch-friendly buttons
+    const dialog = new frappe.ui.Dialog({
+      title: "Tap a Condition",
+      size: "large",
+      fields: [
+        {
+          fieldtype: "HTML",
+          fieldname: "condition_buttons",
+          options: `
+            <style>
+              .condition-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 12px;
+                padding: 10px 0;
+                max-height: 70vh;
+                overflow-y: auto;
+              }
+              .condition-btn {
+                padding: 20px 16px;
+                font-size: 16px;
+                font-weight: 500;
+                border: 2px solid var(--border-color);
+                border-radius: 8px;
+                background: var(--bg-color);
+                color: var(--text-color);
+                cursor: pointer;
+                transition: all 0.15s ease;
+                text-align: center;
+                min-height: 70px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
+              }
+              .condition-btn:hover {
+                border-color: var(--primary-color);
+                background: var(--control-bg);
+              }
+              .condition-btn:active {
+                transform: scale(0.96);
+                background: var(--primary-color);
+                border-color: var(--primary-color);
+                color: white;
+              }
+              @media (max-width: 768px) {
+                .condition-grid {
+                  grid-template-columns: 1fr;
+                }
+                .condition-btn {
+                  padding: 24px 16px;
+                  font-size: 18px;
+                  min-height: 80px;
+                }
+              }
+            </style>
+            <div class="condition-grid">
+              ${options
+                .map(
+                  (opt) => `
+                <button type="button" class="condition-btn" data-condition="${opt.replace(
+                  /"/g,
+                  "&quot;"
+                )}">
+                  ${opt}
+                </button>
+              `
+                )
+                .join("")}
+            </div>
+          `,
+        },
+      ],
+    });
+
+    // Hide the default footer buttons
+    dialog.$wrapper.find(".modal-footer").hide();
+
+    dialog.show();
+
+    // Tap to select AND apply immediately
+    dialog.$wrapper.find(".condition-btn").on("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const condition = $(this).data("condition");
+
+      // Apply immediately
+      window.surgishop.pendingCondition = condition;
+
+      self.show_alert(
+        `Condition "${condition}" will be applied to next scan`,
+        "green",
+        3
+      );
+      self.play_success_sound();
+      dialog.hide();
+    });
   }
 
   /**
    * Delete the last row from items table
    */
   delete_last_row() {
-    const items = this.frm.doc[this.items_table_name] || []
+    const items = this.frm.doc[this.items_table_name] || [];
     if (items.length === 0) {
-      this.show_alert("No items to delete", "orange")
-      this.play_fail_sound()
-      return
+      this.show_alert("No items to delete", "orange");
+      this.play_fail_sound();
+      return;
     }
 
-    const lastRow = items[items.length - 1]
-    const itemCode = lastRow.item_code || "empty row"
+    const lastRow = items[items.length - 1];
+    const itemCode = lastRow.item_code || "empty row";
 
-    frappe.model.clear_doc(lastRow.doctype, lastRow.name)
-    this.frm.refresh_field(this.items_table_name)
+    frappe.model.clear_doc(lastRow.doctype, lastRow.name);
+    this.frm.refresh_field(this.items_table_name);
 
-    this.show_alert(`Deleted row: ${itemCode}`, "red", 3)
-    this.play_success_sound()
+    this.show_alert(`Deleted row: ${itemCode}`, "red", 3);
+    this.play_success_sound();
   }
 
   process_scan() {
     console.log(
       "🏥 SurgiShop ERP Scanner: OVERRIDE SUCCESS! Custom process_scan method is running."
-    )
+    );
     return new Promise((resolve, reject) => {
       try {
-        const input = this.scan_barcode_field.value
-        this.scan_barcode_field.set_value("")
+        const input = this.scan_barcode_field.value;
+        this.scan_barcode_field.set_value("");
         if (!input) {
-          return resolve()
+          return resolve();
         }
 
-        console.log("🏥 SurgiShop ERP Scanner: Processing barcode scan:", input)
+        console.log(
+          "🏥 SurgiShop ERP Scanner: Processing barcode scan:",
+          input
+        );
 
         // Check for trigger barcodes first
         if (this.check_trigger_barcode(input)) {
-          return resolve()
+          return resolve();
         }
 
         // Try to parse as GS1 first
-        const gs1_data = this.parse_gs1_string(input)
+        const gs1_data = this.parse_gs1_string(input);
 
         if (gs1_data) {
           console.log(
             "🏥 SurgiShop ERP Scanner: Detected GS1 barcode. Parsed:",
             gs1_data
-          )
+          );
           console.log(
             `%c🏥 Scanned GS1 AIs: AI01 (GTIN)=${gs1_data.gtin}, AI17 (Expiry)=${gs1_data.expiry}, AI10 (Lot)=${gs1_data.lot}`,
             "color: #2196F3; font-weight: bold;"
-          )
+          );
           this.show_alert(
             `Scanned GS1 AIs:\nGTIN: ${gs1_data.gtin}\nExpiry: ${gs1_data.expiry}\nLot: ${gs1_data.lot}`,
             "blue",
             5
-          )
+          );
           this.gs1_api_call(gs1_data, (r) =>
             this.handle_api_response(r, resolve, reject)
-          )
+          );
         } else {
           console.log(
             "🏥 SurgiShop ERP Scanner: Not a GS1 barcode, using standard scan."
-          )
+          );
           this.scan_api_call(input, (r) =>
             this.handle_api_response(r, resolve, reject)
-          )
+          );
         }
       } catch (e) {
-        console.error("🏥 SurgiShop ERP Scanner: FATAL ERROR in process_scan:", e)
-        reject(e)
+        console.error(
+          "🏥 SurgiShop ERP Scanner: FATAL ERROR in process_scan:",
+          e
+        );
+        reject(e);
       }
-    })
+    });
   }
 
   handle_api_response(r, resolve, reject) {
     try {
-      const data = r && r.message
+      const data = r && r.message;
       if (!data || Object.keys(data).length === 0 || data.error) {
         const error_msg =
           data && data.error
             ? data.error
-            : "Cannot find Item with this Barcode"
+            : "Cannot find Item with this Barcode";
         console.warn(
           `%c🏥 Scan Error: ${error_msg}. Response details:`,
           "color: #FF5722;",
           r
-        )
+        );
         this.show_alert(
           `Error: ${error_msg}. Check console for details.`,
           "red"
-        )
-        this.clean_up()
-        this.play_fail_sound()
-        reject(new Error(error_msg))
-        return
+        );
+        this.clean_up();
+        this.play_fail_sound();
+        reject(new Error(error_msg));
+        return;
       }
 
-      console.log("🏥 SurgiShop ERP Scanner: Barcode scan result:", data)
+      console.log("🏥 SurgiShop ERP Scanner: Barcode scan result:", data);
 
       // Handle warehouse-only responses
       if (data.warehouse && !data.item_code) {
-        console.log("🏥 SurgiShop ERP Scanner: Warehouse scanned:", data.warehouse)
-        this.handle_warehouse_scan(data.warehouse)
-        this.clean_up()
-        this.play_success_sound()
-        resolve()
-        return
+        console.log(
+          "🏥 SurgiShop ERP Scanner: Warehouse scanned:",
+          data.warehouse
+        );
+        this.handle_warehouse_scan(data.warehouse);
+        this.clean_up();
+        this.play_success_sound();
+        resolve();
+        return;
       }
 
       // Handle item responses (with item_code)
       if (!data.item_code) {
         console.warn(
           "🏥 SurgiShop ERP Scanner: No item_code in response, treating as error"
-        )
-        this.show_alert("No item found for this barcode", "red")
-        this.clean_up()
-        this.play_fail_sound()
-        reject(new Error("No item found"))
-        return
+        );
+        this.show_alert("No item found for this barcode", "red");
+        this.clean_up();
+        this.play_fail_sound();
+        reject(new Error("No item found"));
+        return;
       }
 
       this.update_table(data)
         .then((row) => {
-          this.play_success_sound()
-          resolve(row)
+          this.play_success_sound();
+          resolve(row);
         })
         .catch((err) => {
-          this.play_fail_sound()
-          reject(err)
-        })
+          this.play_fail_sound();
+          reject(err);
+        });
     } catch (e) {
       console.error(
         "🏥 SurgiShop ERP Scanner: FATAL ERROR in handle_api_response:",
         e
-      )
-      reject(e)
+      );
+      reject(e);
     }
   }
 
   handle_warehouse_scan(warehouse_name) {
     console.log(
       `🏥 SurgiShop ERP Scanner: Handling warehouse scan: ${warehouse_name}`
-    )
+    );
 
     if (frappe.meta.has_field(this.frm.doctype, "set_warehouse")) {
       frappe.model.set_value(
@@ -342,10 +471,10 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         this.frm.doc.name,
         "set_warehouse",
         warehouse_name
-      )
+      );
       console.log(
         `🏥 SurgiShop ERP Scanner: Set document warehouse to: ${warehouse_name}`
-      )
+      );
     }
 
     if (this.has_last_scanned_warehouse) {
@@ -354,29 +483,36 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         this.frm.doc.name,
         "last_scanned_warehouse",
         warehouse_name
-      )
+      );
       console.log(
         `🏥 SurgiShop ERP Scanner: Stored last scanned warehouse: ${warehouse_name}`
-      )
+      );
     }
 
-    this.show_alert(`Warehouse set to: ${warehouse_name}`, "green", 3)
-    this.frm.refresh_fields()
+    this.show_alert(`Warehouse set to: ${warehouse_name}`, "green", 3);
+    this.frm.refresh_fields();
 
-    const warehouse_field = this.get_warehouse_field()
-    if (warehouse_field && frappe.meta.has_field(this.frm.doctype, this.items_table_name)) {
-      const items = this.frm.doc[this.items_table_name] || []
+    const warehouse_field = this.get_warehouse_field();
+    if (
+      warehouse_field &&
+      frappe.meta.has_field(this.frm.doctype, this.items_table_name)
+    ) {
+      const items = this.frm.doc[this.items_table_name] || [];
       items.forEach((row, index) => {
         if (row[warehouse_field]) {
-          console.log(`🏥 SurgiShop ERP Scanner: Clearing warehouse from existing row ${index + 1} to force new row creation`)
-          frappe.model.set_value(row.doctype, row.name, warehouse_field, "")
+          console.log(
+            `🏥 SurgiShop ERP Scanner: Clearing warehouse from existing row ${
+              index + 1
+            } to force new row creation`
+          );
+          frappe.model.set_value(row.doctype, row.name, warehouse_field, "");
         }
-      })
+      });
     }
   }
 
   gs1_api_call(gs1_data, callback) {
-    console.log("🏥 SurgiShop ERP Scanner: Calling GS1 parser API:", gs1_data)
+    console.log("🏥 SurgiShop ERP Scanner: Calling GS1 parser API:", gs1_data);
     frappe
       .call({
         method: this.gs1_parser_api,
@@ -387,27 +523,27 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         },
       })
       .then((r) => {
-        console.log("🏥 SurgiShop ERP Scanner: GS1 API response:", r)
+        console.log("🏥 SurgiShop ERP Scanner: GS1 API response:", r);
         if (r && r.message && r.message.found_item) {
-          r.message.item_code = r.message.found_item
-          r.message.batch_no = r.message.batch
-          r.message.batch_expiry_date = r.message.batch_expiry_date
+          r.message.item_code = r.message.found_item;
+          r.message.batch_no = r.message.batch;
+          r.message.batch_expiry_date = r.message.batch_expiry_date;
         }
-        callback(r)
+        callback(r);
       })
       .catch((error) => {
-        console.error("🏥 SurgiShop ERP Scanner: GS1 API call failed:", error)
+        console.error("🏥 SurgiShop ERP Scanner: GS1 API call failed:", error);
         callback({
           message: {
             error:
               "GS1 API call failed. Please check connection or server logs.",
           },
-        })
-      })
+        });
+      });
   }
 
   scan_api_call(input, callback) {
-    console.log("🏥 SurgiShop ERP Scanner: Calling custom barcode API:", input)
+    console.log("🏥 SurgiShop ERP Scanner: Calling custom barcode API:", input);
 
     frappe
       .call({
@@ -421,24 +557,27 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         },
       })
       .then((r) => {
-        console.log("🏥 SurgiShop ERP Scanner: API response:", r)
-        callback(r)
+        console.log("🏥 SurgiShop ERP Scanner: API response:", r);
+        callback(r);
       })
       .catch((error) => {
-        console.error("🏥 SurgiShop ERP Scanner: Standard API call failed:", error)
+        console.error(
+          "🏥 SurgiShop ERP Scanner: Standard API call failed:",
+          error
+        );
         callback({
           message: {
             error:
               "Barcode API call failed. Please check connection or server logs.",
           },
-        })
-      })
+        });
+      });
   }
 
   update_table(data) {
     return new Promise((resolve, reject) => {
-      let cur_grid = this.frm.fields_dict[this.items_table_name].grid
-      frappe.flags.trigger_from_barcode_scanner = true
+      let cur_grid = this.frm.fields_dict[this.items_table_name].grid;
+      frappe.flags.trigger_from_barcode_scanner = true;
 
       const {
         item_code,
@@ -448,28 +587,29 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         serial_no,
         uom,
         default_warehouse,
-      } = data
+      } = data;
 
       // Check if we're forcing a new row
-      const forceNewRow = window.surgishop.forceNewRow
+      const forceNewRow = window.surgishop.forceNewRow;
       if (forceNewRow) {
         console.log(
           `%c🏥 FORCE NEW ROW mode active - will create new row regardless of matching`,
           "color: #FF9800; font-weight: bold;"
-        )
-        window.surgishop.forceNewRow = false
+        );
+        window.surgishop.forceNewRow = false;
       }
 
       // Check if we should prompt for quantity
-      const shouldPromptQty = window.surgishop.forcePromptQty || this.prompt_qty
+      const shouldPromptQty =
+        window.surgishop.forcePromptQty || this.prompt_qty;
       if (window.surgishop.forcePromptQty) {
-        window.surgishop.forcePromptQty = false
+        window.surgishop.forcePromptQty = false;
       }
 
       // Check for pending condition
-      const pendingCondition = window.surgishop.pendingCondition
+      const pendingCondition = window.surgishop.pendingCondition;
       if (pendingCondition) {
-        window.surgishop.pendingCondition = null
+        window.surgishop.pendingCondition = null;
       }
 
       let row = forceNewRow
@@ -479,31 +619,34 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
             batch_no,
             uom,
             barcode,
-            default_warehouse
-          )
-      const is_new_row = row && row.item_code ? false : true
+            default_warehouse,
+            pendingCondition
+          );
+      const is_new_row = row && row.item_code ? false : true;
 
       if (is_new_row && item_code) {
         const current_warehouse =
           this.frm.doc.last_scanned_warehouse ||
           this.frm.doc.set_warehouse ||
-          default_warehouse
+          default_warehouse;
         console.log(
           `🏥 SurgiShop ERP Scanner: Creating new row for item ${item_code} in warehouse ${current_warehouse}`
-        )
+        );
         if (forceNewRow) {
-          console.log(`🏥 Debug - Reason: FORCE NEW ROW mode was active`)
+          console.log(`🏥 Debug - Reason: FORCE NEW ROW mode was active`);
         } else {
-          console.log(`🏥 Debug - Reason: No matching row found with same warehouse`)
+          console.log(
+            `🏥 Debug - Reason: No matching row found with same warehouse`
+          );
         }
       } else if (!is_new_row && item_code) {
         const current_warehouse =
           this.frm.doc.last_scanned_warehouse ||
           this.frm.doc.set_warehouse ||
-          default_warehouse
+          default_warehouse;
         console.log(
           `🏥 SurgiShop ERP Scanner: Incrementing existing row for item ${item_code} in warehouse ${current_warehouse}`
-        )
+        );
       }
 
       if (!row) {
@@ -511,43 +654,48 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
           this.show_alert(
             `Maximum quantity scanned for item ${item_code}.`,
             "red"
-          )
-          this.clean_up()
-          reject()
-          return
+          );
+          this.clean_up();
+          reject();
+          return;
         }
 
         row = frappe.model.add_child(
           this.frm.doc,
           cur_grid.doctype,
           this.items_table_name
-        )
+        );
         this.frm.script_manager.trigger(
           `${this.items_table_name}_add`,
           row.doctype,
           row.name
-        )
+        );
         // Refresh the grid to ensure the new row is properly rendered in DOM
-        cur_grid.refresh()
-        this.frm.has_items = false
+        cur_grid.refresh();
+        this.frm.has_items = false;
       }
 
       if (this.is_duplicate_serial_no(row, serial_no)) {
-        this.clean_up()
-        reject()
-        return
+        this.clean_up();
+        reject();
+        return;
       }
 
       frappe.run_serially([
         () => this.set_selector_trigger_flag(data),
         // Small delay to ensure grid is fully rendered before setting values
-        () => new Promise(resolve => setTimeout(resolve, 200)),
+        () => new Promise((resolve) => setTimeout(resolve, 200)),
         () =>
-          this.set_item(row, item_code, barcode, batch_no, serial_no, shouldPromptQty).then(
-            (qty) => {
-              this.show_scan_message(row.idx, !is_new_row, qty)
-            }
-          ),
+          this.set_item(
+            row,
+            item_code,
+            barcode,
+            batch_no,
+            serial_no,
+            shouldPromptQty
+          ).then((qty) => {
+            this.show_scan_message(row.idx, !is_new_row, qty);
+          }),
         () => this.set_barcode_uom(row, uom),
         () => this.set_serial_no(row, serial_no),
         () => this.set_batch_no(row, batch_no),
@@ -558,53 +706,63 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         () => this.clean_up(),
         () => this.revert_selector_flag(),
         () => resolve(row),
-      ])
-    })
+      ]);
+    });
   }
 
   set_selector_trigger_flag(data) {
-    const settings = window.surgishop.settings
+    const settings = window.surgishop.settings;
 
     // If globally disabled, always hide the dialog
     if (settings.disableSerialBatchSelector) {
-      frappe.flags.hide_serial_batch_dialog = true
-      return
+      frappe.flags.hide_serial_batch_dialog = true;
+      return;
     }
 
-    const { batch_no, serial_no, has_batch_no, has_serial_no } = data
-    const require_selecting_batch = has_batch_no && !batch_no
-    const require_selecting_serial = has_serial_no && !serial_no
+    const { batch_no, serial_no, has_batch_no, has_serial_no } = data;
+    const require_selecting_batch = has_batch_no && !batch_no;
+    const require_selecting_serial = has_serial_no && !serial_no;
 
     if (!(require_selecting_batch || require_selecting_serial)) {
-      frappe.flags.hide_serial_batch_dialog = true
+      frappe.flags.hide_serial_batch_dialog = true;
     }
   }
 
   revert_selector_flag() {
-    frappe.flags.hide_serial_batch_dialog = false
-    frappe.flags.trigger_from_barcode_scanner = false
+    frappe.flags.hide_serial_batch_dialog = false;
+    frappe.flags.trigger_from_barcode_scanner = false;
   }
 
-  set_item(row, item_code, barcode, batch_no, serial_no, shouldPromptQty = false) {
+  set_item(
+    row,
+    item_code,
+    barcode,
+    batch_no,
+    serial_no,
+    shouldPromptQty = false
+  ) {
     return new Promise((resolve) => {
       const increment = async (value) => {
-        const qty = value !== undefined ? value : this.default_qty
+        const qty = value !== undefined ? value : this.default_qty;
         const item_data = {
           item_code: item_code,
           use_serial_batch_fields: 1.0,
-        }
-        frappe.flags.trigger_from_barcode_scanner = true
+        };
+        frappe.flags.trigger_from_barcode_scanner = true;
         item_data[this.qty_field] =
-          Number(row[this.qty_field] || 0) + Number(qty)
+          Number(row[this.qty_field] || 0) + Number(qty);
         try {
-          await frappe.model.set_value(row.doctype, row.name, item_data)
+          await frappe.model.set_value(row.doctype, row.name, item_data);
         } catch (e) {
           // ERPNext internal handlers may throw "parent undefined" errors
           // when refreshing fields before DOM is ready - this is harmless
-          console.log(`🏥 SurgiShop: Caught internal refresh error (safe to ignore):`, e.message)
+          console.log(
+            `🏥 SurgiShop: Caught internal refresh error (safe to ignore):`,
+            e.message
+          );
         }
-        return qty
-      }
+        return qty;
+      };
 
       if (shouldPromptQty) {
         frappe.prompt(
@@ -616,65 +774,74 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
             reqd: 1,
           },
           ({ value }) => {
-            increment(value).then((qty) => resolve(qty))
+            increment(value).then((qty) => resolve(qty));
           },
           "Enter Quantity",
           "Add"
-        )
+        );
       } else if (this.frm.has_items) {
-        this.prepare_item_for_scan(row, item_code, barcode, batch_no, serial_no)
-        resolve(this.default_qty)
+        this.prepare_item_for_scan(
+          row,
+          item_code,
+          barcode,
+          batch_no,
+          serial_no
+        );
+        resolve(this.default_qty);
       } else {
-        increment().then((qty) => resolve(qty))
+        increment().then((qty) => resolve(qty));
       }
-    })
+    });
   }
 
   prepare_item_for_scan(row, item_code, barcode, batch_no, serial_no) {
     return new Promise((resolve) => {
       const increment = async (value) => {
-        const qty = value !== undefined ? value : this.default_qty
+        const qty = value !== undefined ? value : this.default_qty;
         const item_data = {
           item_code: item_code,
           use_serial_batch_fields: 1.0,
-        }
-        frappe.flags.trigger_from_barcode_scanner = true
+        };
+        frappe.flags.trigger_from_barcode_scanner = true;
         item_data[this.qty_field] =
-          Number(row[this.qty_field] || 0) + Number(qty)
+          Number(row[this.qty_field] || 0) + Number(qty);
         try {
-          await frappe.model.set_value(row.doctype, row.name, item_data)
+          await frappe.model.set_value(row.doctype, row.name, item_data);
         } catch (e) {
-          console.log(`🏥 SurgiShop: Caught internal refresh error (safe to ignore):`, e.message)
+          console.log(
+            `🏥 SurgiShop: Caught internal refresh error (safe to ignore):`,
+            e.message
+          );
         }
-        return qty
-      }
+        return qty;
+      };
 
-      increment().then((qty) => resolve(qty))
-    })
+      increment().then((qty) => resolve(qty));
+    });
   }
 
   async set_serial_no(row, serial_no) {
     if (serial_no && frappe.meta.has_field(row.doctype, this.serial_no_field)) {
-      const existing_serial_nos = row[this.serial_no_field]
-      let new_serial_nos = ""
+      const existing_serial_nos = row[this.serial_no_field];
+      let new_serial_nos = "";
 
       if (!!existing_serial_nos) {
-        new_serial_nos = existing_serial_nos + "\n" + serial_no
+        new_serial_nos = existing_serial_nos + "\n" + serial_no;
       } else {
-        new_serial_nos = serial_no
+        new_serial_nos = serial_no;
       }
       await frappe.model.set_value(
         row.doctype,
         row.name,
         this.serial_no_field,
         new_serial_nos
-      )
+      );
     }
   }
 
   async set_barcode_uom(row, uom) {
     if (uom && frappe.meta.has_field(row.doctype, this.uom_field)) {
-      await frappe.model.set_value(row.doctype, row.name, this.uom_field, uom)
+      await frappe.model.set_value(row.doctype, row.name, this.uom_field, uom);
     }
   }
 
@@ -685,7 +852,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         row.name,
         this.batch_no_field,
         batch_no
-      )
+      );
     }
   }
 
@@ -696,13 +863,13 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     ) {
       console.log(
         `🏥 SurgiShop ERP Scanner: Setting batch expiry date: ${batch_expiry_date}`
-      )
+      );
       await frappe.model.set_value(
         row.doctype,
         row.name,
         this.batch_expiry_date_field,
         batch_expiry_date
-      )
+      );
     }
   }
 
@@ -713,65 +880,63 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         row.name,
         this.barcode_field,
         barcode
-      )
+      );
     }
   }
 
   async set_warehouse(row) {
-    if (!this.has_last_scanned_warehouse) return
+    if (!this.has_last_scanned_warehouse) return;
 
-    const last_scanned_warehouse = this.frm.doc.last_scanned_warehouse
-    if (!last_scanned_warehouse) return
+    const last_scanned_warehouse = this.frm.doc.last_scanned_warehouse;
+    if (!last_scanned_warehouse) return;
 
-    const warehouse_field = this.get_warehouse_field()
+    const warehouse_field = this.get_warehouse_field();
     if (
       !warehouse_field ||
       !frappe.meta.has_field(row.doctype, warehouse_field)
     )
-      return
+      return;
 
     await frappe.model.set_value(
       row.doctype,
       row.name,
       warehouse_field,
       last_scanned_warehouse
-    )
+    );
   }
 
   async set_condition(row, condition) {
-    if (!condition) return
+    if (!condition) return;
 
     if (frappe.meta.has_field(row.doctype, this.condition_field)) {
-      console.log(
-        `🏥 SurgiShop ERP Scanner: Setting condition: ${condition}`
-      )
+      console.log(`🏥 SurgiShop ERP Scanner: Setting condition: ${condition}`);
       await frappe.model.set_value(
         row.doctype,
         row.name,
         this.condition_field,
         condition
-      )
+      );
     } else {
       console.warn(
         `🏥 SurgiShop ERP Scanner: Condition field ${this.condition_field} not found on ${row.doctype}`
-      )
+      );
     }
   }
 
   get_warehouse_field() {
     if (typeof this.warehouse_field === "function") {
-      return this.warehouse_field(this.frm.doc)
+      return this.warehouse_field(this.frm.doc);
     }
-    return this.warehouse_field
+    return this.warehouse_field;
   }
 
   show_scan_message(idx, is_existing_row = false, qty = 1) {
     if (is_existing_row) {
-      this.show_alert(`Row #${idx}: Qty increased by ${qty}`, "green")
+      this.show_alert(`Row #${idx}: Qty increased by ${qty}`, "green");
     } else {
-      const current_warehouse = this.frm.doc.last_scanned_warehouse
-      const warehouse_msg = current_warehouse ? ` in ${current_warehouse}` : ""
-      this.show_alert(`Row #${idx}: Item added${warehouse_msg}`, "green")
+      const current_warehouse = this.frm.doc.last_scanned_warehouse;
+      const warehouse_msg = current_warehouse ? ` in ${current_warehouse}` : "";
+      this.show_alert(`Row #${idx}: Item added${warehouse_msg}`, "green");
     }
   }
 
@@ -781,10 +946,10 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       row[this.serial_no_field] &&
       row[this.serial_no_field].includes(serial_no)
     ) {
-      this.show_alert(`Serial No ${serial_no} is already added`, "orange")
-      return true
+      this.show_alert(`Serial No ${serial_no} is already added`, "orange");
+      return true;
     }
-    return false
+    return false;
   }
 
   get_row_to_modify_on_scan(
@@ -792,83 +957,113 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     batch_no,
     uom,
     barcode,
-    default_warehouse
+    default_warehouse,
+    pendingCondition = null
   ) {
-    let cur_grid = this.frm.fields_dict[this.items_table_name].grid
+    let cur_grid = this.frm.fields_dict[this.items_table_name].grid;
 
     let is_batch_no_scan =
-      batch_no && frappe.meta.has_field(cur_grid.doctype, this.batch_no_field)
+      batch_no && frappe.meta.has_field(cur_grid.doctype, this.batch_no_field);
     let check_max_qty =
       this.max_qty_field &&
-      frappe.meta.has_field(cur_grid.doctype, this.max_qty_field)
+      frappe.meta.has_field(cur_grid.doctype, this.max_qty_field);
 
-    const warehouse_field = this.get_warehouse_field()
+    const warehouse_field = this.get_warehouse_field();
     const has_warehouse_field =
       warehouse_field &&
-      frappe.meta.has_field(cur_grid.doctype, warehouse_field)
+      frappe.meta.has_field(cur_grid.doctype, warehouse_field);
 
     const warehouse = has_warehouse_field
       ? this.frm.doc.last_scanned_warehouse ||
         this.frm.doc.set_warehouse ||
         default_warehouse
-      : null
+      : null;
+
+    // Check if condition field exists on the child doctype
+    const has_condition_field = frappe.meta.has_field(
+      cur_grid.doctype,
+      this.condition_field
+    );
 
     console.log(
       `🏥 Debug - warehouse_field: ${warehouse_field}, has_warehouse_field: ${has_warehouse_field}, warehouse: ${warehouse}`
-    )
+    );
     console.log(
       `🏥 Debug - last_scanned_warehouse: ${this.frm.doc.last_scanned_warehouse}, set_warehouse: ${this.frm.doc.set_warehouse}`
-    )
+    );
+    console.log(
+      `🏥 Debug - pendingCondition: "${pendingCondition}", has_condition_field: ${has_condition_field}`
+    );
 
     const matching_row = (row) => {
-      const item_match = row.item_code == item_code
-      
+      const item_match = row.item_code == item_code;
+
       // For batch matching: if we're scanning a batch, require exact match
       // If row has no batch, it can still match (will be updated with batch)
       // If row has a batch, it must match the scanned batch exactly
-      const row_batch = row[this.batch_no_field] || ""
-      const scan_batch = batch_no || ""
-      let batch_match = true
+      const row_batch = row[this.batch_no_field] || "";
+      const scan_batch = batch_no || "";
+      let batch_match = true;
       if (is_batch_no_scan) {
         // Scanning with a batch - must match exactly or row must be empty
-        batch_match = !row_batch || row_batch === scan_batch
+        batch_match = !row_batch || row_batch === scan_batch;
       }
-      
-      const uom_match = !uom || row[this.uom_field] == uom
-      
-      // qty_in_limit: only apply if max_qty is actually set (> 0)
-      const max_qty = flt(row[this.max_qty_field])
-      const qty_in_limit = max_qty > 0 
-        ? flt(row[this.qty_field]) < max_qty 
-        : true  // No max set, always allow
 
-      let warehouse_match = true
+      const uom_match = !uom || row[this.uom_field] == uom;
+
+      // qty_in_limit: only apply if max_qty is actually set (> 0)
+      const max_qty = flt(row[this.max_qty_field]);
+      const qty_in_limit =
+        max_qty > 0 ? flt(row[this.qty_field]) < max_qty : true; // No max set, always allow
+
+      let warehouse_match = true;
       if (has_warehouse_field && warehouse_field) {
-        const current_warehouse = warehouse || null
-        const existing_warehouse = row[warehouse_field] || null
+        const current_warehouse = warehouse || null;
+        const existing_warehouse = row[warehouse_field] || null;
 
         console.log(
           `🏥 Debug - Row ${row.idx} warehouse check: current="${current_warehouse}", existing="${existing_warehouse}"`
-        )
+        );
 
         if (current_warehouse && existing_warehouse) {
-          warehouse_match = current_warehouse === existing_warehouse
-          console.log(`🏥 Debug - Both have warehouses: ${warehouse_match}`)
+          warehouse_match = current_warehouse === existing_warehouse;
+          console.log(`🏥 Debug - Both have warehouses: ${warehouse_match}`);
         } else if (current_warehouse && !existing_warehouse) {
           // Allow matching if existing row has no warehouse (will be set)
-          warehouse_match = true
+          warehouse_match = true;
           console.log(
             `🏥 Debug - Current has warehouse, existing doesn't - allowing match`
-          )
+          );
         } else if (!current_warehouse && existing_warehouse) {
-          warehouse_match = true
+          warehouse_match = true;
           console.log(
             `🏥 Debug - Current has no warehouse, existing does - allowing match`
-          )
+          );
         } else {
-          warehouse_match = true
-          console.log(`🏥 Debug - Both have no warehouse: ${warehouse_match}`)
+          warehouse_match = true;
+          console.log(`🏥 Debug - Both have no warehouse: ${warehouse_match}`);
         }
+      }
+
+      // Condition matching:
+      // - Normal scan (no condition) should NOT match rows that have a condition
+      // - Condition scan should only match rows with the SAME condition
+      let condition_match = true;
+      if (has_condition_field) {
+        const row_condition = row[this.condition_field] || "";
+        const scan_condition = pendingCondition || "";
+
+        if (scan_condition) {
+          // Scanning WITH a condition - only match rows with the same condition
+          condition_match = row_condition === scan_condition;
+        } else {
+          // Scanning WITHOUT a condition - only match rows that have NO condition
+          condition_match = !row_condition;
+        }
+
+        console.log(
+          `🏥 Debug - Row ${row.idx} condition check: row="${row_condition}", scan="${scan_condition}", match=${condition_match}`
+        );
       }
 
       const matches =
@@ -876,7 +1071,8 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         uom_match &&
         warehouse_match &&
         batch_match &&
-        (!check_max_qty || qty_in_limit)
+        condition_match &&
+        (!check_max_qty || qty_in_limit);
 
       if (item_match && !matches) {
         console.log(
@@ -886,41 +1082,42 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
             uom_match,
             warehouse_match,
             batch_match,
+            condition_match,
             qty_in_limit,
             row_batch,
             scan_batch,
             current_warehouse: warehouse,
             existing_warehouse: row[warehouse_field],
           }
-        )
+        );
       }
 
-      return matches
-    }
+      return matches;
+    };
 
-    const items_table = this.frm.doc[this.items_table_name] || []
+    const items_table = this.frm.doc[this.items_table_name] || [];
     return (
       items_table.find(matching_row) || items_table.find((d) => !d.item_code)
-    )
+    );
   }
 
   play_success_sound() {
     if (this.enable_sounds && this.success_sound) {
-      console.log(`🔊 Playing success sound: ${this.success_sound}`)
-      frappe.utils.play_sound(this.success_sound)
+      console.log(`🔊 Playing success sound: ${this.success_sound}`);
+      frappe.utils.play_sound(this.success_sound);
     }
   }
 
   play_fail_sound() {
     if (this.enable_sounds && this.fail_sound) {
-      console.log(`🔊 Playing error sound: ${this.fail_sound}`)
-      frappe.utils.play_sound(this.fail_sound)
+      console.log(`🔊 Playing error sound: ${this.fail_sound}`);
+      frappe.utils.play_sound(this.fail_sound);
     }
   }
 
   clean_up() {
-    this.scan_barcode_field.set_value("")
-    refresh_field(this.items_table_name)
+    this.scan_barcode_field.set_value("");
+    refresh_field(this.items_table_name);
   }
 
   show_alert(msg, indicator, duration = 3) {
@@ -930,9 +1127,9 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         indicator: indicator,
       },
       duration
-    )
+    );
   }
-}
+};
 
 /**
  * Load all scanner settings from SurgiShop Settings
@@ -960,7 +1157,7 @@ function loadSurgiShopScannerSettings() {
     async: true,
     callback: (r) => {
       if (r && r.message) {
-        const s = r.message
+        const s = r.message;
         window.surgishop.settings = {
           enableScanSounds: s.enable_scan_sounds !== 0,
           promptForQuantity: s.prompt_for_quantity === 1,
@@ -974,28 +1171,28 @@ function loadSurgiShopScannerSettings() {
           warnOnExpiryMismatch: s.warn_on_expiry_mismatch !== 0,
           updateMissingExpiry: s.update_missing_expiry !== 0,
           strictGtinValidation: s.strict_gtin_validation === 1,
-        }
+        };
         console.log(
           `🏥 SurgiShop ERP Scanner: Settings loaded:`,
           window.surgishop.settings
-        )
+        );
 
         // Apply global flag to disable serial/batch selector
         if (window.surgishop.settings.disableSerialBatchSelector) {
-          frappe.flags.hide_serial_batch_dialog = true
+          frappe.flags.hide_serial_batch_dialog = true;
           console.log(
             `🏥 SurgiShop ERP Scanner: Serial/Batch selector dialog DISABLED globally`
-          )
+          );
         }
       }
     },
-  })
+  });
 }
 
 // Load settings on page load
 $(document).ready(() => {
-  loadSurgiShopScannerSettings()
-})
+  loadSurgiShopScannerSettings();
+});
 
 /**
  * This is the main override logic.
@@ -1011,41 +1208,41 @@ frappe.router.on("change", () => {
     "Sales Invoice",
     "Delivery Note",
     "Stock Reconciliation",
-  ]
+  ];
 
   if (
     frappe.get_route() &&
     frappe.get_route()[0] === "Form" &&
     doctypes_to_override.includes(frappe.get_route()[1])
   ) {
-    const frm = cur_frm
+    const frm = cur_frm;
     if (frm && !frm.custom_scanner_attached) {
       frappe.ui.form.on(frappe.get_route()[1], {
         scan_barcode: function (frm) {
           console.log(
             `%c🏥 SurgiShop ERP Scanner: Overriding scan_barcode field for ${frm.doctype}`,
             "color: #4CAF50; font-weight: bold;"
-          )
+          );
 
           const opts = frm.events.get_barcode_scanner_options
             ? frm.events.get_barcode_scanner_options(frm)
-            : {}
-          opts.frm = frm
+            : {};
+          opts.frm = frm;
 
-          const scanner = new surgishop.CustomBarcodeScanner(opts)
+          const scanner = new surgishop.CustomBarcodeScanner(opts);
           scanner.process_scan().catch((err) => {
-            console.error("🏥 SurgiShop ERP Scanner: Scan error:", err)
+            console.error("🏥 SurgiShop ERP Scanner: Scan error:", err);
             frappe.show_alert({
               message: "Barcode scan failed. Please try again.",
               indicator: "red",
-            })
-          })
+            });
+          });
         },
-      })
-      frm.custom_scanner_attached = true
+      });
+      frm.custom_scanner_attached = true;
     }
   }
-})
+});
 
 /**
  * Auto-fetch expiry date when batch_no is manually changed in child tables
@@ -1059,45 +1256,50 @@ function setupBatchExpiryAutoFetch() {
     "Stock Entry Detail",
     "Delivery Note Item",
     "Sales Invoice Item",
-  ]
+  ];
 
   childDoctypes.forEach((childDoctype) => {
     frappe.ui.form.on(childDoctype, {
       batch_no: function (frm, cdt, cdn) {
-        const row = locals[cdt][cdn]
-        const batchNo = row.batch_no
+        const row = locals[cdt][cdn];
+        const batchNo = row.batch_no;
 
         if (batchNo) {
           // Fetch expiry date from Batch doctype
           frappe.db.get_value("Batch", batchNo, "expiry_date", (r) => {
             if (r && r.expiry_date) {
-              frappe.model.set_value(cdt, cdn, "custom_expiration_date", r.expiry_date)
+              frappe.model.set_value(
+                cdt,
+                cdn,
+                "custom_expiration_date",
+                r.expiry_date
+              );
               console.log(
                 `🏥 SurgiShop ERP Scanner: Auto-fetched expiry date ${r.expiry_date} for batch ${batchNo}`
-              )
+              );
             } else {
               // Clear expiry if batch has no expiry date
-              frappe.model.set_value(cdt, cdn, "custom_expiration_date", null)
+              frappe.model.set_value(cdt, cdn, "custom_expiration_date", null);
               console.log(
                 `🏥 SurgiShop ERP Scanner: Batch ${batchNo} has no expiry date`
-              )
+              );
             }
-          })
+          });
         } else {
           // Clear expiry if batch is cleared
-          frappe.model.set_value(cdt, cdn, "custom_expiration_date", null)
+          frappe.model.set_value(cdt, cdn, "custom_expiration_date", null);
         }
       },
-    })
-  })
+    });
+  });
 
   console.log(
     `%c🏥 SurgiShop ERP Scanner: Batch expiry auto-fetch handlers registered`,
     "color: #4CAF50; font-weight: bold;"
-  )
+  );
 }
 
 // Initialize batch expiry auto-fetch on page ready
 $(document).ready(() => {
-  setupBatchExpiryAutoFetch()
-})
+  setupBatchExpiryAutoFetch();
+});

@@ -14,15 +14,16 @@ def get_default_condition_options():
 	return [
 		'<3mo Dating',
 		'Blister Damage (Cracked, Dented)',
-		'Water Issue',
+		'Box Damaged',
 		'Broken Seal',
 		'Expired',
 		'Foreign Debris',
 		'Foreign Label',
 		'Kit (missing or non-verifiable components)',
-		'Multiple Issues, Please Inquire',
+		'Multiple Issues',
 		'Other',
 		'Patient Label Issue',
+		'Primary Label Damage',
 		'Product Damaged',
 		'Product Missing',
 		'Product Mismatch',
@@ -31,8 +32,7 @@ def get_default_condition_options():
 		'Stains or Bio-Hazard',
 		'Sterility Breach',
 		'Temperature Tag Exposure',
-		'Primary Label Damage',
-		'Box Damaged',
+		'Water Issue',
 	]
 
 
