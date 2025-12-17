@@ -12,14 +12,36 @@ if (typeof window.surgishop === "undefined") {
 // These errors occur when ERPNext tries to refresh grid fields before DOM is ready
 // The errors are harmless - values still get set correctly
 window.addEventListener("unhandledrejection", (event) => {
+  const reason = event.reason;
+  // Check various ways the error message might be structured
+  const message =
+    (reason && reason.message) ||
+    (reason && String(reason)) ||
+    "";
+
   if (
-    event.reason &&
-    event.reason.message &&
-    event.reason.message.includes("can't access property") &&
-    event.reason.message.includes("parent")
+    message.includes("can't access property") ||
+    message.includes("cannot read property") ||
+    message.includes("parent") && message.includes("undefined")
   ) {
     // Suppress this specific ERPNext timing error
     event.preventDefault();
+    event.stopPropagation();
+    return false;
+  }
+});
+
+// Also catch synchronous errors from ERPNext grid refresh
+window.addEventListener("error", (event) => {
+  const message = event.message || "";
+  if (
+    message.includes("can't access property") ||
+    message.includes("cannot read property") ||
+    (message.includes("parent") && message.includes("undefined"))
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
+    return false;
   }
 });
 
