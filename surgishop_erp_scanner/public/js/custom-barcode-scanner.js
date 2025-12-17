@@ -174,6 +174,8 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
    * Prompt for condition selection with touch-friendly dialog
    */
   prompt_for_condition() {
+    console.log("🏥 SurgiShop ERP Scanner: Opening condition selector dialog...");
+
     // Fetch condition options from SurgiShop Condition Settings
     frappe.call({
       method: "frappe.client.get_list",
@@ -184,10 +186,14 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         limit_page_length: 0,
       },
       callback: (r) => {
+        console.log("🏥 SurgiShop ERP Scanner: Condition options response:", r);
+
         let options = [];
         if (r && r.message) {
           options = r.message.map((d) => d.condition).filter((o) => o);
         }
+
+        console.log("🏥 SurgiShop ERP Scanner: Parsed options:", options);
 
         if (options.length === 0) {
           this.show_alert(
@@ -195,10 +201,20 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
             "orange",
             5
           );
+          this.play_fail_sound();
           return;
         }
 
         this.show_touch_condition_dialog(options);
+      },
+      error: (err) => {
+        console.error("🏥 SurgiShop ERP Scanner: Failed to fetch condition options:", err);
+        this.show_alert(
+          "Failed to load condition options. Check console for details.",
+          "red",
+          5
+        );
+        this.play_fail_sound();
       },
     });
   }
@@ -208,6 +224,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
    * @param {Array} options - List of condition options
    */
   show_touch_condition_dialog(options) {
+    console.log("🏥 SurgiShop ERP Scanner: Creating touch condition dialog with", options.length, "options");
     const self = this;
 
     // Create custom dialog with large touch-friendly buttons
@@ -589,9 +606,20 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         default_warehouse,
       } = data;
 
-      // Check if we're forcing a new row
-      const forceNewRow = window.surgishop.forceNewRow;
-      if (forceNewRow) {
+      // Check for pending condition FIRST
+      // Condition scans should ALWAYS create a new row
+      const pendingCondition = window.surgishop.pendingCondition;
+      if (pendingCondition) {
+        console.log(
+          `%c🏥 CONDITION PENDING: "${pendingCondition}" - forcing new row`,
+          "color: #9C27B0; font-weight: bold;"
+        );
+        window.surgishop.pendingCondition = null;
+      }
+
+      // Check if we're forcing a new row (or if condition is pending)
+      let forceNewRow = window.surgishop.forceNewRow || !!pendingCondition;
+      if (window.surgishop.forceNewRow) {
         console.log(
           `%c🏥 FORCE NEW ROW mode active - will create new row regardless of matching`,
           "color: #FF9800; font-weight: bold;"
@@ -604,12 +632,6 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         window.surgishop.forcePromptQty || this.prompt_qty;
       if (window.surgishop.forcePromptQty) {
         window.surgishop.forcePromptQty = false;
-      }
-
-      // Check for pending condition
-      const pendingCondition = window.surgishop.pendingCondition;
-      if (pendingCondition) {
-        window.surgishop.pendingCondition = null;
       }
 
       let row = forceNewRow
