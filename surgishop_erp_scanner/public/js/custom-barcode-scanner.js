@@ -582,7 +582,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   }
 
   /**
-   * Handle GTIN not found - prompt user to create a new Item
+   * Handle GTIN not found - prompt user to search for existing item or create new
    * @param {object} data - Contains gtin, lot, expiry from the scan
    */
   handle_gtin_not_found(data) {
@@ -602,10 +602,10 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       }
     }
 
-    // Show dialog to create new Item
+    // Show dialog with search option and create new option
     const dialog = new frappe.ui.Dialog({
       title: "Item Not Found",
-      size: "small",
+      size: "large",
       fields: [
         {
           fieldtype: "HTML",
@@ -620,10 +620,37 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
                 ${lot ? `<div><strong>Lot:</strong> ${frappe.utils.escape_html(lot)}</div>` : ""}
                 ${expiryDisplay ? `<div><strong>Expiry:</strong> ${frappe.utils.escape_html(expiryDisplay)}</div>` : ""}
               </div>
-              <p style="margin-top: 15px; color: var(--text-muted);">
-                Would you like to create a new Item with this barcode?
-              </p>
             </div>
+          `,
+        },
+        {
+          fieldtype: "Section Break",
+          label: "Attach to Existing Item",
+        },
+        {
+          fieldtype: "Link",
+          fieldname: "existing_item",
+          label: "Search for Item",
+          options: "Item",
+          description: "Search by item code, name, or description",
+        },
+        {
+          fieldtype: "Button",
+          fieldname: "attach_btn",
+          label: "Attach Barcode to Selected Item",
+          btn_size: "lg",
+        },
+        {
+          fieldtype: "Section Break",
+          label: "Or Create New Item",
+        },
+        {
+          fieldtype: "HTML",
+          fieldname: "create_section",
+          options: `
+            <p style="color: var(--text-muted); margin-bottom: 10px;">
+              If the item doesn't exist yet, create a new one with this barcode pre-filled.
+            </p>
           `,
         },
       ],
@@ -639,8 +666,79 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       },
     });
 
+    // Handle attach button click
+    dialog.fields_dict.attach_btn.$input.on("click", function () {
+      const selected_item = dialog.get_value("existing_item");
+      if (!selected_item) {
+        frappe.show_alert({
+          message: "Please select an item first",
+          indicator: "orange",
+        });
+        return;
+      }
+
+      // Attach barcode to the selected item
+      self.attach_barcode_to_item(selected_item, gtin, lot, expiry, dialog);
+    });
+
+    // Style the attach button
+    dialog.fields_dict.attach_btn.$input
+      .removeClass("btn-default btn-xs")
+      .addClass("btn-primary btn-md")
+      .css({
+        "margin-top": "10px",
+        "padding": "10px 20px",
+        "font-size": "14px",
+      });
+
     dialog.show();
     this.play_fail_sound();
+  }
+
+  /**
+   * Attach a barcode to an existing item
+   * @param {string} item_code - The item to attach the barcode to
+   * @param {string} gtin - The GTIN/barcode
+   * @param {string} lot - The lot number (optional)
+   * @param {string} expiry - The expiry in YYMMDD format (optional)
+   * @param {object} dialog - The dialog to close on success
+   */
+  attach_barcode_to_item(item_code, gtin, lot, expiry, dialog) {
+    const self = this;
+
+    frappe.call({
+      method: "frappe.client.insert",
+      args: {
+        doc: {
+          doctype: "Item Barcode",
+          parent: item_code,
+          parenttype: "Item",
+          parentfield: "barcodes",
+          barcode: gtin,
+          barcode_type: "EAN",
+        },
+      },
+      freeze: true,
+      freeze_message: "Attaching barcode to item...",
+      callback: function (r) {
+        if (r && !r.exc) {
+          dialog.hide();
+          self.show_alert(
+            `Barcode ${gtin} attached to ${item_code}. Scan again to add to document.`,
+            "green",
+            5
+          );
+          self.play_success_sound();
+        }
+      },
+      error: function () {
+        frappe.show_alert({
+          message: "Failed to attach barcode. It may already exist.",
+          indicator: "red",
+        });
+        self.play_fail_sound();
+      },
+    });
   }
 
   /**
