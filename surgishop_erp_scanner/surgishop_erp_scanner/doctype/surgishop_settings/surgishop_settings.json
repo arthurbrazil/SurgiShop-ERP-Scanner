@@ -31,6 +31,7 @@
     "update_missing_expiry",
     "column_break_batch",
     "strict_gtin_validation",
+    "prompt_create_item_on_unknown_gtin",
     "batch_expiry_section",
     "allow_expired_batches_on_inbound",
     "column_break_1",
@@ -199,6 +200,13 @@
       "fieldname": "strict_gtin_validation",
       "fieldtype": "Check",
       "label": "Strict GTIN Validation"
+    },
+    {
+      "default": "1",
+      "description": "When a valid GS1 barcode is scanned but the GTIN is not found in the system, prompt to create a new Item",
+      "fieldname": "prompt_create_item_on_unknown_gtin",
+      "fieldtype": "Check",
+      "label": "Prompt to Create Item on Unknown GTIN"
     },
     {
       "fieldname": "batch_expiry_section",

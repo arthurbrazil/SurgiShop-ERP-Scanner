@@ -88,7 +88,19 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 				as_dict=True
 			) or {}
 			if not item_info:
-				frappe.throw(_("No item found for GTIN: {0}. Please add this barcode to the correct Item.").format(gtin))
+				# Check if we should prompt to create item
+				if settings.get("prompt_create_item_on_unknown_gtin", 1):
+					frappe.logger().info(
+						f"🏥 SurgiShop ERP Scanner: GTIN {gtin} not found, returning gtin_not_found response"
+					)
+					return {
+						"gtin_not_found": True,
+						"gtin": gtin,
+						"lot": lot,
+						"expiry": expiry
+					}
+				else:
+					frappe.throw(_("No item found for GTIN: {0}. Please add this barcode to the correct Item.").format(gtin))
 
 		# Proceed without the mismatch check, as we've validated above
 		item_code = item_info.get("name")

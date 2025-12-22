@@ -63,6 +63,7 @@ window.surgishop.settings = {
   warnOnExpiryMismatch: true,
   updateMissingExpiry: true,
   strictGtinValidation: false,
+  promptCreateItemOnUnknownGtin: true,
 };
 
 /**
@@ -504,6 +505,14 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         return;
       }
 
+      // Handle GTIN not found - prompt to create new Item
+      if (data.gtin_not_found) {
+        this.handle_gtin_not_found(data);
+        this.clean_up();
+        resolve();
+        return;
+      }
+
       // Handle warehouse-only responses
       if (data.warehouse && !data.item_code) {
         this.handle_warehouse_scan(data.warehouse);
@@ -570,6 +579,94 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         }
       });
     }
+  }
+
+  /**
+   * Handle GTIN not found - prompt user to create a new Item
+   * @param {object} data - Contains gtin, lot, expiry from the scan
+   */
+  handle_gtin_not_found(data) {
+    const self = this;
+    const { gtin, lot, expiry } = data;
+
+    // Format expiry date for display if present
+    let expiryDisplay = "";
+    if (expiry && expiry.length === 6) {
+      try {
+        const year = "20" + expiry.substring(0, 2);
+        const month = expiry.substring(2, 4);
+        const day = expiry.substring(4, 6);
+        expiryDisplay = `${year}-${month}-${day}`;
+      } catch (e) {
+        expiryDisplay = expiry;
+      }
+    }
+
+    // Show dialog to create new Item
+    const dialog = new frappe.ui.Dialog({
+      title: "Item Not Found",
+      size: "small",
+      fields: [
+        {
+          fieldtype: "HTML",
+          fieldname: "info_html",
+          options: `
+            <div style="margin-bottom: 15px;">
+              <p style="margin-bottom: 10px;">
+                <strong>No item found for the scanned GTIN.</strong>
+              </p>
+              <div style="background: var(--bg-light-gray); padding: 12px; border-radius: 6px; font-family: monospace;">
+                <div><strong>GTIN:</strong> ${frappe.utils.escape_html(gtin)}</div>
+                ${lot ? `<div><strong>Lot:</strong> ${frappe.utils.escape_html(lot)}</div>` : ""}
+                ${expiryDisplay ? `<div><strong>Expiry:</strong> ${frappe.utils.escape_html(expiryDisplay)}</div>` : ""}
+              </div>
+              <p style="margin-top: 15px; color: var(--text-muted);">
+                Would you like to create a new Item with this barcode?
+              </p>
+            </div>
+          `,
+        },
+      ],
+      primary_action_label: "Create New Item",
+      primary_action: function () {
+        dialog.hide();
+        self.open_new_item_form(gtin, lot, expiry);
+      },
+      secondary_action_label: "Cancel",
+      secondary_action: function () {
+        dialog.hide();
+        self.play_fail_sound();
+      },
+    });
+
+    dialog.show();
+    this.play_fail_sound();
+  }
+
+  /**
+   * Open a new Item form pre-filled with the scanned barcode
+   * @param {string} gtin - The GTIN/barcode
+   * @param {string} lot - The lot number (optional)
+   * @param {string} expiry - The expiry in YYMMDD format (optional)
+   */
+  open_new_item_form(gtin, lot, expiry) {
+    // Navigate to new Item form
+    frappe.new_doc("Item", {
+      barcodes: [
+        {
+          barcode: gtin,
+          barcode_type: "EAN",
+        },
+      ],
+      has_batch_no: 1,
+    });
+
+    // Show helpful message
+    this.show_alert(
+      `Creating new Item with barcode: ${gtin}`,
+      "blue",
+      5
+    );
   }
 
   gs1_api_call(gs1_data, callback) {
@@ -1181,6 +1278,7 @@ function loadSurgiShopScannerSettings() {
         "warn_on_expiry_mismatch",
         "update_missing_expiry",
         "strict_gtin_validation",
+        "prompt_create_item_on_unknown_gtin",
         "condition_warehouse_behavior",
         "accepted_warehouse",
         "rejected_warehouse",
@@ -1203,6 +1301,7 @@ function loadSurgiShopScannerSettings() {
           warnOnExpiryMismatch: s.warn_on_expiry_mismatch !== 0,
           updateMissingExpiry: s.update_missing_expiry !== 0,
           strictGtinValidation: s.strict_gtin_validation === 1,
+          promptCreateItemOnUnknownGtin: s.prompt_create_item_on_unknown_gtin !== 0,
           conditionWarehouseBehavior:
             s.condition_warehouse_behavior || "No Change",
           acceptedWarehouse: s.accepted_warehouse || null,
