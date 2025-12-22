@@ -223,7 +223,9 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     let defaultWarehouse = "none";
     if (settings.conditionWarehouseBehavior === "Use Accepted Warehouse") {
       defaultWarehouse = "accepted";
-    } else if (settings.conditionWarehouseBehavior === "Use Rejected Warehouse") {
+    } else if (
+      settings.conditionWarehouseBehavior === "Use Rejected Warehouse"
+    ) {
       defaultWarehouse = "rejected";
     }
 
@@ -419,7 +421,10 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       let message = `Condition "${condition}" will be applied to next scan`;
       if (selectedWarehouse === "accepted" && settings.acceptedWarehouse) {
         message += ` → ${settings.acceptedWarehouse}`;
-      } else if (selectedWarehouse === "rejected" && settings.rejectedWarehouse) {
+      } else if (
+        selectedWarehouse === "rejected" &&
+        settings.rejectedWarehouse
+      ) {
         message += ` → ${settings.rejectedWarehouse}`;
       }
 
@@ -616,9 +621,23 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
                 <strong>No item found for the scanned GTIN.</strong>
               </p>
               <div style="background: var(--bg-light-gray); padding: 12px; border-radius: 6px; font-family: monospace;">
-                <div><strong>GTIN:</strong> ${frappe.utils.escape_html(gtin)}</div>
-                ${lot ? `<div><strong>Lot:</strong> ${frappe.utils.escape_html(lot)}</div>` : ""}
-                ${expiryDisplay ? `<div><strong>Expiry:</strong> ${frappe.utils.escape_html(expiryDisplay)}</div>` : ""}
+                <div><strong>GTIN:</strong> ${frappe.utils.escape_html(
+                  gtin
+                )}</div>
+                ${
+                  lot
+                    ? `<div><strong>Lot:</strong> ${frappe.utils.escape_html(
+                        lot
+                      )}</div>`
+                    : ""
+                }
+                ${
+                  expiryDisplay
+                    ? `<div><strong>Expiry:</strong> ${frappe.utils.escape_html(
+                        expiryDisplay
+                      )}</div>`
+                    : ""
+                }
               </div>
             </div>
           `,
@@ -687,7 +706,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       .addClass("btn-primary btn-md")
       .css({
         "margin-top": "10px",
-        "padding": "10px 20px",
+        padding: "10px 20px",
         "font-size": "14px",
       });
 
@@ -760,11 +779,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     });
 
     // Show helpful message
-    this.show_alert(
-      `Creating new Item with barcode: ${gtin}`,
-      "blue",
-      5
-    );
+    this.show_alert(`Creating new Item with barcode: ${gtin}`, "blue", 5);
   }
 
   gs1_api_call(gs1_data, callback) {
@@ -838,7 +853,8 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       // Check for pending condition FIRST
       // Condition scans should ALWAYS create a new row
       const pendingCondition = window.surgishop.pendingCondition;
-      const pendingConditionWarehouse = window.surgishop.pendingConditionWarehouse;
+      const pendingConditionWarehouse =
+        window.surgishop.pendingConditionWarehouse;
       if (pendingCondition) {
         window.surgishop.pendingCondition = null;
         // Note: pendingConditionWarehouse is cleared in set_condition after being applied
@@ -1181,7 +1197,10 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       const behavior = settings.conditionWarehouseBehavior;
       if (behavior === "Use Accepted Warehouse" && settings.acceptedWarehouse) {
         targetWarehouse = settings.acceptedWarehouse;
-      } else if (behavior === "Use Rejected Warehouse" && settings.rejectedWarehouse) {
+      } else if (
+        behavior === "Use Rejected Warehouse" &&
+        settings.rejectedWarehouse
+      ) {
         targetWarehouse = settings.rejectedWarehouse;
       }
     }
@@ -1190,7 +1209,11 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     // Clear the pending warehouse selection
     window.surgishop.pendingConditionWarehouse = null;
 
-    if (targetWarehouse && warehouse_field && frappe.meta.has_field(row.doctype, warehouse_field)) {
+    if (
+      targetWarehouse &&
+      warehouse_field &&
+      frappe.meta.has_field(row.doctype, warehouse_field)
+    ) {
       try {
         await frappe.model.set_value(
           row.doctype,
@@ -1399,7 +1422,8 @@ function loadSurgiShopScannerSettings() {
           warnOnExpiryMismatch: s.warn_on_expiry_mismatch !== 0,
           updateMissingExpiry: s.update_missing_expiry !== 0,
           strictGtinValidation: s.strict_gtin_validation === 1,
-          promptCreateItemOnUnknownGtin: s.prompt_create_item_on_unknown_gtin !== 0,
+          promptCreateItemOnUnknownGtin:
+            s.prompt_create_item_on_unknown_gtin !== 0,
           conditionWarehouseBehavior:
             s.condition_warehouse_behavior || "No Change",
           acceptedWarehouse: s.accepted_warehouse || null,
