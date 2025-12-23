@@ -60,6 +60,9 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 		lot = str(lot).strip()
 		expiry = str(expiry).strip() if expiry else ""
 
+		# Get settings early - needed for various checks throughout
+		settings = get_scanner_settings()
+
 		frappe.logger().info(
 			f"🏥 SurgiShop ERP Scanner: Processing GS1 - GTIN: {gtin}, Lot: {lot}, Expiry: {expiry}"
 		)
@@ -130,8 +133,7 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 			)
 			frappe.throw(_("Item {0} does not use batch numbers").format(item_code))
 
-		# 3) Get settings and form the batch_id based on naming format
-		settings = get_scanner_settings()
+		# 3) Form the batch_id based on naming format
 		batch_id = format_batch_id(item_code, lot)
 		frappe.logger().info(
 			f"🏥 SurgiShop ERP Scanner: Looking for batch_id: {batch_id} (format: {settings.get('batch_naming_format', '{item}-{lot}')})"
