@@ -36,6 +36,37 @@ def cleanup_old_workspaces():
 				print(f"Could not delete workspace {ws_name}: {e}")
 
 
+def fix_settings_defaults():
+	"""
+	Fix default values for settings fields that were added after initial install.
+	This ensures new Check fields have the correct default (1) instead of 0.
+	"""
+	try:
+		if frappe.db.exists("SurgiShop Settings", "SurgiShop Settings"):
+			# Fields that should default to 1 (enabled) if they are 0 or None
+			fields_to_enable = [
+				"prompt_create_item_on_unknown_gtin",
+			]
+
+			doc = frappe.get_doc("SurgiShop Settings")
+			updated = False
+
+			for field in fields_to_enable:
+				current_value = doc.get(field)
+				# If value is 0 or None, set it to 1
+				if current_value in (0, None, ""):
+					doc.set(field, 1)
+					updated = True
+					print(f"Fixed {field}: {current_value} -> 1")
+
+			if updated:
+				doc.save(ignore_permissions=True)
+				frappe.db.commit()
+				print("SurgiShop Settings defaults fixed.")
+	except Exception as e:
+		print(f"Could not fix settings defaults: {e}")
+
+
 def create_default_settings():
 	"""Create default SurgiShop Settings document."""
 	if not frappe.db.exists("SurgiShop Settings", "SurgiShop Settings"):
