@@ -92,7 +92,9 @@ def parse_gs1_and_get_batch(gtin, expiry, lot, item_code=None):
 			) or {}
 			if not item_info:
 				# Check if we should prompt to create item
-				if settings.get("prompt_create_item_on_unknown_gtin", 1):
+				# Use explicit check for False/0, default to True if None/unset
+				prompt_create = settings.get("prompt_create_item_on_unknown_gtin")
+				if prompt_create is None or prompt_create:
 					frappe.logger().info(
 						f"🏥 SurgiShop ERP Scanner: GTIN {gtin} not found, returning gtin_not_found response"
 					)
