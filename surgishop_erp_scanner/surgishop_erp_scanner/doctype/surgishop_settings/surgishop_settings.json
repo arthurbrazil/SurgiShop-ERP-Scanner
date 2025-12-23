@@ -32,6 +32,7 @@
     "column_break_batch",
     "strict_gtin_validation",
     "prompt_create_item_on_unknown_gtin",
+    "create_item_inline",
     "batch_expiry_section",
     "allow_expired_batches_on_inbound",
     "column_break_1",
@@ -207,6 +208,14 @@
       "fieldname": "prompt_create_item_on_unknown_gtin",
       "fieldtype": "Check",
       "label": "Prompt to Create Item on Unknown GTIN"
+    },
+    {
+      "default": "1",
+      "depends_on": "prompt_create_item_on_unknown_gtin",
+      "description": "Create new items inline in the dialog instead of opening a separate Item form. Items are created with Batch and Expiry tracking enabled.",
+      "fieldname": "create_item_inline",
+      "fieldtype": "Check",
+      "label": "Create Item Inline (Quick Create)"
     },
     {
       "fieldname": "batch_expiry_section",

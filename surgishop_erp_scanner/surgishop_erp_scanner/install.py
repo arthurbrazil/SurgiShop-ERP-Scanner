@@ -46,6 +46,7 @@ def fix_settings_defaults():
 			# Fields that should default to 1 (enabled) if they are 0 or None
 			fields_to_enable = [
 				"prompt_create_item_on_unknown_gtin",
+				"create_item_inline",
 			]
 
 			doc = frappe.get_doc("SurgiShop Settings")

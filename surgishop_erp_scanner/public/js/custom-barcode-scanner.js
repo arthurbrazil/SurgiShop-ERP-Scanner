@@ -593,6 +593,8 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
   handle_gtin_not_found(data) {
     const self = this;
     const { gtin, lot, expiry } = data;
+    const settings = window.surgishop.settings;
+    const useInlineCreate = settings.createItemInline !== false;
 
     // Format expiry date for display if present
     let expiryDisplay = "";
@@ -607,82 +609,107 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       }
     }
 
+    // Build fields array
+    const fields = [
+      {
+        fieldtype: "HTML",
+        fieldname: "info_html",
+        options: `
+          <div style="margin-bottom: 15px;">
+            <p style="margin-bottom: 10px;">
+              <strong>No item found for the scanned GTIN.</strong>
+            </p>
+            <div style="background: var(--bg-light-gray); padding: 12px; border-radius: 6px; font-family: monospace;">
+              <div><strong>GTIN:</strong> ${frappe.utils.escape_html(gtin)}</div>
+              ${lot ? `<div><strong>Lot:</strong> ${frappe.utils.escape_html(lot)}</div>` : ""}
+              ${expiryDisplay ? `<div><strong>Expiry:</strong> ${frappe.utils.escape_html(expiryDisplay)}</div>` : ""}
+            </div>
+          </div>
+        `,
+      },
+      {
+        fieldtype: "Section Break",
+        label: "Attach to Existing Item",
+      },
+      {
+        fieldtype: "Link",
+        fieldname: "existing_item",
+        label: "Search for Item",
+        options: "Item",
+        description: "Search by item code, name, or description",
+      },
+      {
+        fieldtype: "Button",
+        fieldname: "attach_btn",
+        label: "Attach Barcode to Selected Item",
+        btn_size: "lg",
+      },
+      {
+        fieldtype: "Section Break",
+        label: "Or Create New Item",
+      },
+    ];
+
+    // Add inline create fields or description based on setting
+    if (useInlineCreate) {
+      fields.push(
+        {
+          fieldtype: "Data",
+          fieldname: "new_item_name",
+          label: "Item Name",
+          reqd: 0,
+          description: "Enter a name for the new item (will also be used as Item Code)",
+        },
+        {
+          fieldtype: "HTML",
+          fieldname: "inline_info",
+          options: `
+            <p style="color: var(--text-muted); font-size: 12px; margin-top: 5px;">
+              <strong>Note:</strong> Item will be created with Batch tracking and Expiry Date enabled.
+            </p>
+          `,
+        },
+        {
+          fieldtype: "Button",
+          fieldname: "create_inline_btn",
+          label: "Create Item",
+          btn_size: "lg",
+        }
+      );
+    } else {
+      fields.push({
+        fieldtype: "HTML",
+        fieldname: "create_section",
+        options: `
+          <p style="color: var(--text-muted); margin-bottom: 10px;">
+            If the item doesn't exist yet, create a new one with this barcode pre-filled.
+          </p>
+        `,
+      });
+    }
+
     // Show dialog with search option and create new option
     const dialog = new frappe.ui.Dialog({
       title: "Item Not Found",
       size: "large",
-      fields: [
-        {
-          fieldtype: "HTML",
-          fieldname: "info_html",
-          options: `
-            <div style="margin-bottom: 15px;">
-              <p style="margin-bottom: 10px;">
-                <strong>No item found for the scanned GTIN.</strong>
-              </p>
-              <div style="background: var(--bg-light-gray); padding: 12px; border-radius: 6px; font-family: monospace;">
-                <div><strong>GTIN:</strong> ${frappe.utils.escape_html(
-                  gtin
-                )}</div>
-                ${
-                  lot
-                    ? `<div><strong>Lot:</strong> ${frappe.utils.escape_html(
-                        lot
-                      )}</div>`
-                    : ""
-                }
-                ${
-                  expiryDisplay
-                    ? `<div><strong>Expiry:</strong> ${frappe.utils.escape_html(
-                        expiryDisplay
-                      )}</div>`
-                    : ""
-                }
-              </div>
-            </div>
-          `,
-        },
-        {
-          fieldtype: "Section Break",
-          label: "Attach to Existing Item",
-        },
-        {
-          fieldtype: "Link",
-          fieldname: "existing_item",
-          label: "Search for Item",
-          options: "Item",
-          description: "Search by item code, name, or description",
-        },
-        {
-          fieldtype: "Button",
-          fieldname: "attach_btn",
-          label: "Attach Barcode to Selected Item",
-          btn_size: "lg",
-        },
-        {
-          fieldtype: "Section Break",
-          label: "Or Create New Item",
-        },
-        {
-          fieldtype: "HTML",
-          fieldname: "create_section",
-          options: `
-            <p style="color: var(--text-muted); margin-bottom: 10px;">
-              If the item doesn't exist yet, create a new one with this barcode pre-filled.
-            </p>
-          `,
-        },
-      ],
-      primary_action_label: "Create New Item",
+      fields: fields,
+      primary_action_label: useInlineCreate ? "Cancel" : "Create New Item",
       primary_action: function () {
-        dialog.hide();
-        self.open_new_item_form(gtin, lot, expiry);
+        if (useInlineCreate) {
+          dialog.hide();
+          self.play_fail_sound();
+        } else {
+          dialog.hide();
+          self.open_new_item_form(gtin, lot, expiry);
+        }
       },
-      secondary_action_label: "Cancel",
-      secondary_action: function () {
-        dialog.hide();
-        self.play_fail_sound();
-      },
+      secondary_action_label: useInlineCreate ? null : "Cancel",
+      secondary_action: useInlineCreate
+        ? null
+        : function () {
+            dialog.hide();
+            self.play_fail_sound();
+          },
     });
 
     // Handle attach button click
@@ -709,6 +736,32 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
         padding: "10px 20px",
         "font-size": "14px",
       });
+
+    // Handle inline create button if enabled
+    if (useInlineCreate && dialog.fields_dict.create_inline_btn) {
+      dialog.fields_dict.create_inline_btn.$input.on("click", function () {
+        const item_name = dialog.get_value("new_item_name");
+        if (!item_name || !item_name.trim()) {
+          frappe.show_alert({
+            message: "Please enter an item name",
+            indicator: "orange",
+          });
+          return;
+        }
+
+        self.create_item_inline(item_name.trim(), gtin, lot, expiry, dialog);
+      });
+
+      // Style the create button
+      dialog.fields_dict.create_inline_btn.$input
+        .removeClass("btn-default btn-xs")
+        .addClass("btn-success btn-md")
+        .css({
+          "margin-top": "10px",
+          padding: "10px 20px",
+          "font-size": "14px",
+        });
+    }
 
     dialog.show();
     this.play_fail_sound();
@@ -753,6 +806,74 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       error: function () {
         frappe.show_alert({
           message: "Failed to attach barcode. It may already exist.",
+          indicator: "red",
+        });
+        self.play_fail_sound();
+      },
+    });
+  }
+
+  /**
+   * Create a new Item inline with batch/expiry tracking enabled
+   * @param {string} item_name - The name for the new item
+   * @param {string} gtin - The GTIN/barcode
+   * @param {string} lot - The lot number (optional)
+   * @param {string} expiry - The expiry in YYMMDD format (optional)
+   * @param {object} dialog - The dialog to close on success
+   */
+  create_item_inline(item_name, gtin, lot, expiry, dialog) {
+    const self = this;
+
+    frappe.call({
+      method: "frappe.client.insert",
+      args: {
+        doc: {
+          doctype: "Item",
+          item_code: item_name,
+          item_name: item_name,
+          item_group: "Products", // Default group - will be overridden if needed
+          stock_uom: "Nos",
+          is_stock_item: 1,
+          has_batch_no: 1,
+          create_new_batch: 1,
+          has_expiry_date: 1,
+          barcodes: [
+            {
+              barcode: gtin,
+              barcode_type: "EAN",
+            },
+          ],
+        },
+      },
+      freeze: true,
+      freeze_message: "Creating new item...",
+      callback: function (r) {
+        if (r && r.message) {
+          const new_item_code = r.message.name;
+          dialog.hide();
+          self.show_alert(
+            `Item "${new_item_code}" created with barcode ${gtin}. Scan again to add to document.`,
+            "green",
+            5
+          );
+          self.play_success_sound();
+        }
+      },
+      error: function (r) {
+        let error_msg = "Failed to create item.";
+        if (r && r._server_messages) {
+          try {
+            const messages = JSON.parse(r._server_messages);
+            if (messages.length > 0) {
+              const msg = JSON.parse(messages[0]);
+              error_msg = msg.message || error_msg;
+            }
+          } catch (e) {
+            // Use default error message
+          }
+        }
+        frappe.show_alert({
+          message: error_msg,
           indicator: "red",
         });
         self.play_fail_sound();
@@ -1400,6 +1521,7 @@ function loadSurgiShopScannerSettings() {
         "update_missing_expiry",
         "strict_gtin_validation",
         "prompt_create_item_on_unknown_gtin",
+        "create_item_inline",
         "condition_warehouse_behavior",
         "accepted_warehouse",
         "rejected_warehouse",
@@ -1424,6 +1546,7 @@ function loadSurgiShopScannerSettings() {
           strictGtinValidation: s.strict_gtin_validation === 1,
           promptCreateItemOnUnknownGtin:
             s.prompt_create_item_on_unknown_gtin !== 0,
+          createItemInline: s.create_item_inline !== 0,
           conditionWarehouseBehavior:
             s.condition_warehouse_behavior || "No Change",
           acceptedWarehouse: s.accepted_warehouse || null,
