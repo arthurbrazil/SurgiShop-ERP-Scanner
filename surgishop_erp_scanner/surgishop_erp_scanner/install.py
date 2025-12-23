@@ -16,6 +16,24 @@ def after_install():
 	"""
 	create_default_settings()
 	create_default_condition_settings()
+	cleanup_old_workspaces()
+
+
+def cleanup_old_workspaces():
+	"""
+	Remove old/renamed workspaces to prevent duplicates.
+	Called after install and can be called after migrate.
+	"""
+	old_workspaces = ["SS - Scanner"]
+
+	for ws_name in old_workspaces:
+		if frappe.db.exists("Workspace", ws_name):
+			try:
+				frappe.delete_doc("Workspace", ws_name, force=True, ignore_permissions=True)
+				frappe.db.commit()
+				print(f"Deleted old workspace: {ws_name}")
+			except Exception as e:
+				print(f"Could not delete workspace {ws_name}: {e}")
 
 
 def create_default_settings():
