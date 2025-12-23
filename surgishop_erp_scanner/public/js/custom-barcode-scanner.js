@@ -620,9 +620,23 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
               <strong>No item found for the scanned GTIN.</strong>
             </p>
             <div style="background: var(--bg-light-gray); padding: 12px; border-radius: 6px; font-family: monospace;">
-              <div><strong>GTIN:</strong> ${frappe.utils.escape_html(gtin)}</div>
-              ${lot ? `<div><strong>Lot:</strong> ${frappe.utils.escape_html(lot)}</div>` : ""}
-              ${expiryDisplay ? `<div><strong>Expiry:</strong> ${frappe.utils.escape_html(expiryDisplay)}</div>` : ""}
+              <div><strong>GTIN:</strong> ${frappe.utils.escape_html(
+                gtin
+              )}</div>
+              ${
+                lot
+                  ? `<div><strong>Lot:</strong> ${frappe.utils.escape_html(
+                      lot
+                    )}</div>`
+                  : ""
+              }
+              ${
+                expiryDisplay
+                  ? `<div><strong>Expiry:</strong> ${frappe.utils.escape_html(
+                      expiryDisplay
+                    )}</div>`
+                  : ""
+              }
             </div>
           </div>
         `,
@@ -658,7 +672,8 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
           fieldname: "new_item_name",
           label: "Item Name",
           reqd: 0,
-          description: "Enter a name for the new item (will also be used as Item Code)",
+          description:
+            "Enter a name for the new item (will also be used as Item Code)",
         },
         {
           fieldtype: "HTML",
@@ -764,6 +779,14 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
     }
 
     dialog.show();
+
+    // Auto-focus the item name field if inline create is enabled
+    if (useInlineCreate && dialog.fields_dict.new_item_name) {
+      setTimeout(() => {
+        dialog.fields_dict.new_item_name.$input.focus();
+      }, 100);
+    }
+
     this.play_fail_sound();
   }
 
@@ -787,7 +810,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
           parenttype: "Item",
           parentfield: "barcodes",
           barcode: gtin,
-          barcode_type: "EAN",
+          barcode_type: "GS1",
         },
       },
       freeze: true,
@@ -840,7 +863,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
           barcodes: [
             {
               barcode: gtin,
-              barcode_type: "EAN",
+              barcode_type: "GS1",
             },
           ],
         },
@@ -893,7 +916,7 @@ surgishop.CustomBarcodeScanner = class CustomBarcodeScanner {
       barcodes: [
         {
           barcode: gtin,
-          barcode_type: "EAN",
+          barcode_type: "GS1",
         },
       ],
       has_batch_no: 1,
