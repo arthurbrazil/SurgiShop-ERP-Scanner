@@ -47,6 +47,22 @@
 			"read": 1,
 			"role": "Stock Manager",
 			"write": 1
+		},
+		{
+			"read": 1,
+			"role": "Stock User"
+		},
+		{
+			"read": 1,
+			"role": "Purchase User"
+		},
+		{
+			"read": 1,
+			"role": "Purchase Manager"
+		},
+		{
+			"read": 1,
+			"role": "All"
 		}
 	],
 	"sort_field": "creation",
