@@ -1585,8 +1585,30 @@ function loadSurgiShopScannerSettings() {
   });
 }
 
-// Load settings on page load
+// Roles that are allowed to use the scanner
+const SCANNER_ALLOWED_ROLES = [
+  "System Manager",
+  "Stock Manager",
+  "Stock User",
+  "Purchase Manager",
+  "Purchase User",
+];
+
+/**
+ * Check if current user has permission to use the scanner
+ */
+function userCanUseScanner() {
+  if (!frappe.user || !frappe.user.has_role) {
+    return false;
+  }
+  return SCANNER_ALLOWED_ROLES.some((role) => frappe.user.has_role(role));
+}
+
+// Load settings on page load (only for authorized users)
 $(document).ready(() => {
+  if (!userCanUseScanner()) {
+    return; // Don't initialize scanner for users without appropriate roles
+  }
   loadSurgiShopScannerSettings();
 });
 
@@ -1596,6 +1618,10 @@ $(document).ready(() => {
  * loaded and ready before we try to attach our form-specific hooks.
  */
 frappe.router.on("change", () => {
+  // Skip scanner initialization for users without appropriate roles
+  if (!userCanUseScanner()) {
+    return;
+  }
   const doctypes_to_override = [
     "Stock Entry",
     "Purchase Order",
